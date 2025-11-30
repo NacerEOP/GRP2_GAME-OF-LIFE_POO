@@ -7,16 +7,18 @@ SFMLUI::SFMLUI(int width, int height, int cellSize)
       cellSize(static_cast<float>(cellSize)), gridOffsetX(0), gridOffsetY(0),
       currentState(GameState::HOME_SCREEN)
 {
+    
+
     window.create(
         sf::VideoMode({static_cast<unsigned int>(800), 
                       static_cast<unsigned int>(600)}), 
-        "Game of Life",
+        "GRP2-GAME_OF_LIFE",
         sf::Style::Default
     );
 
     if (window.isOpen()) {
-        window.setFramerateLimit(60);
-        //initializeHomeScreen();
+        window.setFramerateLimit(120);
+        initializeHomeScreen();
     }
 }
 
@@ -90,7 +92,7 @@ void SFMLUI::updateView() {
 }
 
 void SFMLUI::drawHomeScreen() {
-    window.clear(sf::Color(0, 0, 128));
+    window.clear(sf::Color(26, 26, 26));
     
     window.draw(titleBackground);
     window.draw(playButton);
