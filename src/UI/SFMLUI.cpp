@@ -4,6 +4,12 @@
 #include <optional>
 #include <filesystem>
 #include <string>
+#include <unordered_map>
+#include "../Core/Grid.h"
+
+namespace {
+    std::unordered_map<const SFMLUI*, Grid> uiGrids;
+}
 
 SFMLUI::SFMLUI(int width, int height, int cellSize)
     : gridWidth(width), gridHeight(height), baseCellSize(cellSize),
@@ -22,6 +28,12 @@ SFMLUI::SFMLUI(int width, int height, int cellSize)
         initializeHomeScreen();
         window.setMinimumSize(sf::Vector2u(400, 300));
     }
+
+    // Create an internal Grid for this UI instance and synchronize sizes.
+    uiGrids[this] = Grid(gridHeight, gridWidth);
+    // sync our width/height to the Grid
+    gridWidth = uiGrids[this].getC();
+    gridHeight = uiGrids[this].getR();
 }
 
 bool SFMLUI::isMouseOver(const sf::RectangleShape& button) {
@@ -390,6 +402,24 @@ void SFMLUI::handleGameScreenEvents() {
                         } else {
                             inputActive = false;
                         }
+
+                        // If click is within grid area, toggle that cell
+                        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                        sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
+                        Grid &g = uiGrids[this];
+                        int rows = g.getR();
+                        int cols = g.getC();
+                        float gridWidthPixels = cellSize * cols;
+                        float gridHeightPixels = cellSize * rows;
+                        if (worldPos.x >= gridOffsetX && worldPos.x < gridOffsetX + gridWidthPixels &&
+                            worldPos.y >= gridOffsetY && worldPos.y < gridOffsetY + gridHeightPixels) {
+                            int col = static_cast<int>((worldPos.x - gridOffsetX) / cellSize);
+                            int row = static_cast<int>((worldPos.y - gridOffsetY) / cellSize);
+                            if (row >= 0 && row < rows && col >= 0 && col < cols) {
+                                bool current = g.getCell(row, col);
+                                g.setCell(row, col, !current);
+                            }
+                        }
                     }
                 }
             });
@@ -469,20 +499,24 @@ void SFMLUI::displayGrid(const std::vector<std::vector<int>>& grid) {
     if (mainMenuText.has_value()) window.draw(*mainMenuText);
 
     // Draw grid below the top bar
-    for (int y = 0; y < gridHeight; ++y) {
-        for (int x = 0; x < gridWidth; ++x) {
-            sf::RectangleShape cell({cellSize - 1.0f, cellSize - 1.0f});
-            cell.setPosition({gridOffsetX + x * cellSize, gridOffsetY + y * cellSize});
+        Grid &g = uiGrids[this];
+        int rows = g.getR();
+        int cols = g.getC();
 
-            if (grid[y][x] == 1) {
-                cell.setFillColor(sf::Color::White);
-            } else {
-                cell.setFillColor(sf::Color::Black);
+        for (int r = 0; r < rows; ++r) {
+            for (int c = 0; c < cols; ++c) {
+                sf::RectangleShape cell({cellSize - 1.0f, cellSize - 1.0f});
+                cell.setPosition({gridOffsetX + c * cellSize, gridOffsetY + r * cellSize});
+
+                if (g.getCell(r, c)) {
+                    cell.setFillColor(sf::Color::White);
+                } else {
+                    cell.setFillColor(sf::Color::Black);
+                }
+
+                window.draw(cell);
             }
-
-            window.draw(cell);
         }
-    }
 
     window.display();
 }
