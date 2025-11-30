@@ -16,7 +16,7 @@ SFMLUI::SFMLUI(int width, int height, int cellSize)
 
     if (window.isOpen()) {
         window.setFramerateLimit(60);
-        initializeHomeScreen();
+        //initializeHomeScreen();
     }
 }
 
