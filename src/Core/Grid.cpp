@@ -1,6 +1,6 @@
 #include "Grid.h"
 
-Grid::Grid(int x, int y) : x(x), y(y) {
+Grid::Grid(int r, int c) : rows(r), cols(c) {
     
 }
 
@@ -8,20 +8,20 @@ Grid::~Grid() {
 
 }
 
-int Grid::getX() const {
-    return x;
+int Grid::getR() const {
+    return r;
 }
 
-int Grid::getY() const {
-    return y;
+int Grid::getC() const {
+    return c;
 }
 
-void Grid::setX(int x) {
-    this->x = x;
+void Grid::setR(int r) {
+    this->r = r;
 }
 
-void Grid::setY(int y) {
-    this->y = y;
+void Grid::setC(int c) {
+    this->c = c;
 }
 
 

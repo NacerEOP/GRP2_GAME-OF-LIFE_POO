@@ -3,18 +3,18 @@
 
 
 class Grid {
-    
+
 private:
-    int x;
-    int y;
+    int rows;
+    int cols;
 
 public:
-    Grid(int x, int y) ;
+    Grid(int r, int c) ;
     ~Grid();
-    int getX() const;
-    int getY() const;
-    void setX(int x);
-    void setY(int y);
+    int getR() const;
+    int getC() const;
+    void setR(int r);
+    void setC(int c);
 
 };
 
