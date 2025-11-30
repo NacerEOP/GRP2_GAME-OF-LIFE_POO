@@ -12,31 +12,13 @@ public:
     virtual int countAliveNeighbors(const Cell& cell, const Grid& grid) const = 0;
 };
 
-<<<<<<< HEAD
 // Concrete neighborhoods
 namespace Neighborhoods {
     class MooreNeighborhood : public Neighborhood {
-=======
-class Neighborhood
-{
-public:
-    virtual ~Neighborhood() = default;
-
-    // Retourne le nombre de voisins vivants autour de la cellule donnée
-    virtual int countAliveNeighbors(const Cell& cell, const Grid& grid) const = 0;
-};
-
-
-namespace Neighborhoods {
-
-    class MooreNeighborhood : public Neighborhood
-    {
->>>>>>> 7e3a1f9 (SFML interface update)
     public:
         int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
     };
 
-<<<<<<< HEAD
     class VonNeumannNeighborhood : public Neighborhood {
     public:
         int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
@@ -45,19 +27,6 @@ namespace Neighborhoods {
 
 // Abstract rule base class
 class Rule {
-=======
-    class VonNeumannNeighborhood : public Neighborhood
-    {
-    public:
-        int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
-    };
-
-}
-
-
-class Rule
-{
->>>>>>> 7e3a1f9 (SFML interface update)
 protected:
     Neighborhood* neighborhood;
 
