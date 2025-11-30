@@ -120,8 +120,8 @@ void SFMLUI::initializeGameUI() {
         std::cerr << "Retro font not loaded; game-screen will use default font." << std::endl;
     }
 
-    // Top bar (dark theme)
-    topBar.setSize({static_cast<float>(window.getSize().x), 64.0f});
+    // Top bar (dark theme) — size will be set in updateView() to match grid width
+    topBar.setSize({0.0f, 64.0f});
     topBar.setFillColor(sf::Color(26, 26, 26));
 
     // Start and Pause buttons (dark background, white text)
@@ -179,12 +179,12 @@ void SFMLUI::updateView() {
         gridOffsetX = (static_cast<float>(windowSize.x) - gridWidthPixels) / 2.0f;
         // place grid below the top bar and center in remaining space
         gridOffsetY = topBarHeight + (static_cast<float>(windowSize.y) - topBarHeight - gridHeightPixels) / 2.0f;
-        // update top bar and controls positions
-        topBar.setSize({static_cast<float>(windowSize.x), topBarHeight});
-        topBar.setPosition({0.0f, 0.0f});
+        // update top bar and controls positions: top bar aligns horizontally with grid
+        topBar.setSize({gridWidthPixels, topBarHeight});
+        topBar.setPosition({gridOffsetX, 0.0f});
 
-        // start and pause buttons on the left
-        startButton.setPosition({10.0f, (topBarHeight - startButton.getSize().y) / 2.0f});
+        // start and pause buttons on the left inside the top bar
+        startButton.setPosition({gridOffsetX + 8.0f, (topBarHeight - startButton.getSize().y) / 2.0f});
         pauseButton.setPosition({startButton.getPosition().x + startButton.getSize().x + 8.0f,
                                  (topBarHeight - pauseButton.getSize().y) / 2.0f});
         if (startText.has_value()) {
@@ -198,9 +198,9 @@ void SFMLUI::updateView() {
                                     pauseButton.getPosition().y + pauseButton.getSize().y / 2.0f - tb.size.y / 2.0f});
         }
 
-        // input box to the right of pause button
+        // input box to the right of pause button (inside top bar)
         inputBox.setPosition({pauseButton.getPosition().x + pauseButton.getSize().x + 12.0f,
-                              (topBarHeight - inputBox.getSize().y) / 2.0f});
+                      (topBarHeight - inputBox.getSize().y) / 2.0f});
         if (inputText.has_value()) {
             auto it = inputText->getLocalBounds();
             inputText->setPosition({inputBox.getPosition().x + 8.0f, inputBox.getPosition().y + inputBox.getSize().y / 2.0f - it.size.y / 2.0f});
