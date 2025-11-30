@@ -1,18 +1,37 @@
 
 #pragma once
-#include <iostream> 
+#include <iostream>
 
 #include "Cell.h"
 #include "Grid.h"
 
+// Abstract neighborhood interface
+class Neighborhood {
+public:
+    virtual ~Neighborhood() = default;
+    virtual int countAliveNeighbors(const Cell& cell, const Grid& grid) const = 0;
+};
 
-class Rule
-{
+// Concrete neighborhoods
+namespace Neighborhoods {
+    class MooreNeighborhood : public Neighborhood {
+    public:
+        int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
+    };
+
+    class VonNeumannNeighborhood : public Neighborhood {
+    public:
+        int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
+    };
+}
+
+// Abstract rule base class
+class Rule {
 protected:
     Neighborhood* neighborhood;
 
 public:
-    Rule(Neighborhood* n) : neighborhood(n) {}
+    explicit Rule(Neighborhood* n) : neighborhood(n) {}
     virtual ~Rule() = default;
 
     // Retourne le futur état
@@ -24,50 +43,17 @@ protected:
     }
 };
 
-
-class BasicRule : public Rule
-{
+// Basic rule (example)
+class BasicRule : public Rule {
 public:
     BasicRule() : Rule(new Neighborhoods::VonNeumannNeighborhood()) {}
-
     bool computeNextState(const Cell& cell, const Grid& grid) const override;
 };
 
-class ConwayRule : public Rule
-{
+// Conway's Game of Life rule
+class ConwayRule : public Rule {
 public:
     ConwayRule() : Rule(new Neighborhoods::MooreNeighborhood()) {}
-
     bool computeNextState(const Cell& cell, const Grid& grid) const override;
 };
-
-
-
-
-
-class Neighborhood
-{
-public:
-    virtual ~Neighborhood() = default;
-
-    // Retourne le nombre de voisins vivants autour de la cellule donnée
-    virtual int countAliveNeighbors(const Cell& cell, const Grid& grid) const = 0;
-};
-
-
-namespace Neighborhoods {
-
-    class MooreNeighborhood : public Neighborhood
-    {
-    public:
-        int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
-    };
-
-    class VonNeumannNeighborhood : public Neighborhood
-    {
-    public:
-        int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
-    };
-
-} 
 
