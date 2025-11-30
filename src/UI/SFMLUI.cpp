@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <optional>
+#include <filesystem>
 
 SFMLUI::SFMLUI(int width, int height, int cellSize)
     : gridWidth(width), gridHeight(height), baseCellSize(cellSize),
@@ -28,14 +29,50 @@ bool SFMLUI::isMouseOver(const sf::RectangleShape& button) {
 }
 
 void SFMLUI::initializeHomeScreen() {
-    if (!font.openFromFile("../../resources/fonts/Pixel-font.ttf")) {
-        std::cerr << "Failed to load square font! Using default." << std::endl;
-        if (!font.openFromFile("arial.ttf")) {
-            return;
+    // Try loading the font from likely resource locations. There's no fatal
+    // error here: if the font fails to load we'll still create texts which
+    // will use the default font behaviour (empty font results in invisible text
+    // in SFML, so it's recommended to ensure the path is correct).
+    // Try multiple likely locations for the font file. The executable's
+    // working directory can vary depending on how you run the program, so
+    // check a few relative locations (project tree, build dir, etc.).
+    // Also try to build a path relative to this source file at compile time.
+    namespace fs = std::filesystem;
+
+    std::vector<fs::path> candidates;
+    candidates.emplace_back("resources/fonts/Pixel-font.ttf");
+    candidates.emplace_back("../resources/fonts/Pixel-font.ttf");
+    candidates.emplace_back("../../resources/fonts/Pixel-font.ttf");
+
+    // Path based on the source file location (compile-time). Move up from
+    // src/UI to project root and append resources/fonts.
+    fs::path srcPath = fs::path(__FILE__);
+    if (srcPath.has_parent_path()) {
+        fs::path projectRoot = srcPath.parent_path().parent_path().parent_path();
+        candidates.emplace_back(projectRoot / "resources" / "fonts" / "Pixel-font.ttf");
+    }
+
+    bool loaded = false;
+    for (const auto& p : candidates) {
+        try {
+            auto abs = fs::absolute(p);
+            if (font.openFromFile(p.string())) {
+                loaded = true;
+                break;
+            } else {
+                std::cerr << "Failed to load font (failed to open file): " << p.string() << std::endl;
+                std::cerr << "    Absolute path: " << abs.string() << std::endl;
+            }
+        } catch (const std::exception& ex) {
+            std::cerr << "Exception while checking font path: " << ex.what() << std::endl;
         }
     }
+
+    if (!loaded) {
+        std::cerr << "Failed to load Pixel-font.ttf from any candidate path. Text may be invisible." << std::endl;
+    }
     
-    titleText = sf::Text(font, "GAME OF LIFE", 48);
+    titleText = sf::Text(font, "GAME OF LIFE", 90);
     titleText->setFillColor(sf::Color(200, 200, 200));
     
     playButtonText = sf::Text(font, "PLAY", 36);
@@ -49,6 +86,9 @@ void SFMLUI::initializeHomeScreen() {
     
     exitButton.setSize({200, 60});
     exitButton.setFillColor(sf::Color::Transparent);
+
+    // Ensure view and text/button positions are correct before first draw
+    updateView();
 }
 
 void SFMLUI::updateView() {
