@@ -50,9 +50,10 @@ namespace Neighborhoods {
             int nx = x + o[0];
             int ny = y + o[1];
 
-            if (grid.isInBounds(nx, ny))
+            // Vérifier les limites
+            if (nx >= 0 && nx < grid.getR() && ny >= 0 && ny < grid.getC())
             {
-                if (grid.getCell(nx, ny)->getStatus())
+                if (grid.getCell(nx, ny))
                     count++;
             }
         }
@@ -77,9 +78,10 @@ namespace Neighborhoods {
             int nx = x + o[0];
             int ny = y + o[1];
 
-            if (grid.isInBounds(nx, ny))
+            // Vérifier les limites
+            if (nx >= 0 && nx < grid.getR() && ny >= 0 && ny < grid.getC())
             {
-                if (grid.getCell(nx, ny)->getStatus())
+                if (grid.getCell(nx, ny))
                     count++;
             }
         }
