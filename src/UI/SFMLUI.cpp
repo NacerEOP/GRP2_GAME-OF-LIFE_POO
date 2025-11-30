@@ -85,8 +85,7 @@ void SFMLUI::initializeHomeScreen() {
     // Ensure view and text/button positions are correct before first draw
     updateView();
 
-    // Initialize game-screen UI elements (fonts may already be loaded above)
-    initializeGameUI();
+    // Do NOT initialize game UI here — initialize it when entering GAME_SCREEN
 }
 
 void SFMLUI::initializeGameUI() {
@@ -121,34 +120,43 @@ void SFMLUI::initializeGameUI() {
         std::cerr << "Retro font not loaded; game-screen will use default font." << std::endl;
     }
 
-    // Top bar
-    topBar.setSize({static_cast<float>(window.getSize().x), 60.0f});
-    topBar.setFillColor(sf::Color(40, 40, 40));
+    // Top bar (bright color for visibility)
+    topBar.setSize({static_cast<float>(window.getSize().x), 64.0f});
+    topBar.setFillColor(sf::Color(50, 100, 160));
 
-    // Start/Stop button
-    startStopButton.setSize({120.0f, 40.0f});
-    startStopButton.setFillColor(sf::Color(80, 80, 80));
+    // Start and Pause buttons (more visible)
+    startButton.setSize({120.0f, 44.0f});
+    startButton.setFillColor(sf::Color(60, 180, 75));
+    startButton.setOutlineColor(sf::Color::Black);
+    startButton.setOutlineThickness(2.0f);
+    pauseButton.setSize({120.0f, 44.0f});
+    pauseButton.setFillColor(sf::Color(220, 70, 70));
+    pauseButton.setOutlineColor(sf::Color::Black);
+    pauseButton.setOutlineThickness(2.0f);
 
-    // Start/Stop text
+    // Start/Pause texts
     if (gameFont.getInfo().family.size() > 0) {
-        startStopText = sf::Text(gameFont, "Start", 20);
+        startText = sf::Text(gameFont, "Start", 20);
+        pauseText = sf::Text(gameFont, "Pause", 20);
     } else {
-        startStopText = sf::Text(font, "Start", 20);
+        startText = sf::Text(font, "Start", 20);
+        pauseText = sf::Text(font, "Pause", 20);
     }
-    startStopText->setFillColor(sf::Color::White);
+    startText->setFillColor(sf::Color::Black);
+    pauseText->setFillColor(sf::Color::Black);
 
     // Input box
-    inputBox.setSize({140.0f, 36.0f});
-    inputBox.setFillColor(sf::Color::Black);
+    inputBox.setSize({160.0f, 40.0f});
+    inputBox.setFillColor(sf::Color(240, 240, 240));
     inputBox.setOutlineThickness(2.0f);
-    inputBox.setOutlineColor(sf::Color(120, 120, 120));
+    inputBox.setOutlineColor(sf::Color::Black);
 
     if (gameFont.getInfo().family.size() > 0) {
         inputText = sf::Text(gameFont, std::to_string(inputValue), 18);
     } else {
         inputText = sf::Text(font, std::to_string(inputValue), 18);
     }
-    inputText->setFillColor(sf::Color::White);
+    inputText->setFillColor(sf::Color::Black);
 
     // ensure positions are correct
     updateView();
@@ -160,7 +168,7 @@ void SFMLUI::updateView() {
     auto windowSize = window.getSize();
     
     if (currentState == GameState::GAME_SCREEN) {
-        const float topBarHeight = 60.0f;
+        const float topBarHeight = 64.0f;
         float cellSizeX = static_cast<float>(windowSize.x) / static_cast<float>(gridWidth);
         float cellSizeY = (static_cast<float>(windowSize.y) - topBarHeight) / static_cast<float>(gridHeight);
         cellSize = std::min(cellSizeX, cellSizeY);
@@ -174,16 +182,23 @@ void SFMLUI::updateView() {
         topBar.setSize({static_cast<float>(windowSize.x), topBarHeight});
         topBar.setPosition({0.0f, 0.0f});
 
-        // start/stop button left side
-        startStopButton.setPosition({10.0f, (topBarHeight - startStopButton.getSize().y) / 2.0f});
-        if (startStopText.has_value()) {
-            auto tb = startStopText->getLocalBounds();
-            startStopText->setPosition({startStopButton.getPosition().x + startStopButton.getSize().x / 2.0f - tb.size.x / 2.0f,
-                                        startStopButton.getPosition().y + startStopButton.getSize().y / 2.0f - tb.size.y / 2.0f});
+        // start and pause buttons on the left
+        startButton.setPosition({10.0f, (topBarHeight - startButton.getSize().y) / 2.0f});
+        pauseButton.setPosition({startButton.getPosition().x + startButton.getSize().x + 8.0f,
+                                 (topBarHeight - pauseButton.getSize().y) / 2.0f});
+        if (startText.has_value()) {
+            auto tb = startText->getLocalBounds();
+            startText->setPosition({startButton.getPosition().x + startButton.getSize().x / 2.0f - tb.size.x / 2.0f,
+                                    startButton.getPosition().y + startButton.getSize().y / 2.0f - tb.size.y / 2.0f});
+        }
+        if (pauseText.has_value()) {
+            auto tb = pauseText->getLocalBounds();
+            pauseText->setPosition({pauseButton.getPosition().x + pauseButton.getSize().x / 2.0f - tb.size.x / 2.0f,
+                                    pauseButton.getPosition().y + pauseButton.getSize().y / 2.0f - tb.size.y / 2.0f});
         }
 
-        // input box to the right of button
-        inputBox.setPosition({startStopButton.getPosition().x + startStopButton.getSize().x + 12.0f,
+        // input box to the right of pause button
+        inputBox.setPosition({pauseButton.getPosition().x + pauseButton.getSize().x + 12.0f,
                               (topBarHeight - inputBox.getSize().y) / 2.0f});
         if (inputText.has_value()) {
             auto it = inputText->getLocalBounds();
@@ -239,13 +254,7 @@ void SFMLUI::updateView() {
 void SFMLUI::drawHomeScreen() {
     window.clear(sf::Color(26, 26, 26));
 
-    // Draw top bar and controls
-    window.draw(topBar);
-    window.draw(startStopButton);
-    if (startStopText.has_value()) window.draw(*startStopText);
-    window.draw(inputBox);
-    if (inputText.has_value()) window.draw(*inputText);
-    
+    // Home screen draws only its own elements
     if (titleText.has_value()) {
         window.draw(*titleText);
     }
@@ -296,6 +305,8 @@ void SFMLUI::handleHomeScreenEvents() {
                     if (ev.button == sf::Mouse::Button::Left) {
                         if (isMouseOver(playButton)) {
                             currentState = GameState::GAME_SCREEN;
+                            // initialize game UI now (only when entering game screen)
+                            initializeGameUI();
                             updateView();
                         }
                         
@@ -334,12 +345,16 @@ void SFMLUI::handleGameScreenEvents() {
             event->visit([this](auto&& ev) {
                 if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::MouseButtonPressed>) {
                     if (ev.button == sf::Mouse::Button::Left) {
-                        if (isMouseOver(startStopButton)) {
-                            simulationRunning = !simulationRunning;
-                            if (startStopText.has_value()) {
-                                if (simulationRunning) startStopText->setString("Stop");
-                                else startStopText->setString("Start");
-                            }
+                        if (isMouseOver(startButton)) {
+                            simulationRunning = true;
+                            // update visuals
+                            startButton.setFillColor(sf::Color(120, 200, 120));
+                            pauseButton.setFillColor(sf::Color(160, 80, 80));
+                        }
+                        if (isMouseOver(pauseButton)) {
+                            simulationRunning = false;
+                            startButton.setFillColor(sf::Color(80, 160, 80));
+                            pauseButton.setFillColor(sf::Color(200, 120, 120));
                         }
 
                         if (isMouseOver(inputBox)) {
@@ -352,11 +367,24 @@ void SFMLUI::handleGameScreenEvents() {
             });
         }
 
-        // text entry for number input
-        // We handle numeric input via KeyPressed events to avoid templated
-        // visitor instantiation issues with some SFML versions.
+        // Text input (Unicode-aware): use TextEntered so users can type numbers
+        if (event->is<sf::Event::TextEntered>()) {
+            event->visit([this](auto&& ev) {
+                if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::TextEntered>) {
+                    if (!inputActive) return;
+                    uint32_t unicode = ev.unicode;
+                    // accept ASCII digits only for now
+                    if (unicode >= '0' && unicode <= '9') {
+                        std::string s = inputText.has_value() ? inputText->getString().toAnsiString() : std::to_string(inputValue);
+                        s.push_back(static_cast<char>(unicode));
+                        try { inputValue = std::stoi(s); } catch(...) { }
+                        if (inputText.has_value()) inputText->setString(s);
+                    }
+                }
+            });
+        }
 
-        // key presses (e.g., Escape to home)
+        // key presses (e.g., Escape to home, Backspace, Enter)
         if (event->is<sf::Event::KeyPressed>()) {
             event->visit([this](auto&& ev) {
                 if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::KeyPressed>) {
@@ -367,27 +395,22 @@ void SFMLUI::handleGameScreenEvents() {
                         return;
                     }
 
-                    // Space -> toggle simulation
+                    // Space -> toggle simulation and update visuals
                     if (ev.scancode == sf::Keyboard::Scancode::Space) {
                         simulationRunning = !simulationRunning;
-                        if (startStopText.has_value()) {
-                            if (simulationRunning) startStopText->setString("Stop");
-                            else startStopText->setString("Start");
+                        if (simulationRunning) {
+                            startButton.setFillColor(sf::Color(120, 200, 120));
+                            pauseButton.setFillColor(sf::Color(160, 80, 80));
+                        } else {
+                            startButton.setFillColor(sf::Color(80, 160, 80));
+                            pauseButton.setFillColor(sf::Color(200, 120, 120));
                         }
                         return;
                     }
 
-                    // If input is active, accept Num0..Num9 and Backspace
+                    // Backspace / Enter handling when input active
                     if (inputActive) {
-                        // Scancodes for numbers (Num0..Num9)
-                        if (ev.scancode >= sf::Keyboard::Scancode::Num0 && ev.scancode <= sf::Keyboard::Scancode::Num9) {
-                            int digit = static_cast<int>(ev.scancode) - static_cast<int>(sf::Keyboard::Scancode::Num0);
-                            // append digit
-                            std::string s = inputText.has_value() ? inputText->getString().toAnsiString() : std::to_string(inputValue);
-                            s.push_back('0' + digit);
-                            try { inputValue = std::stoi(s); } catch(...) { }
-                            if (inputText.has_value()) inputText->setString(s);
-                        } else if (ev.scancode == sf::Keyboard::Scancode::Backspace) {
+                        if (ev.scancode == sf::Keyboard::Scancode::Backspace) {
                             std::string s = inputText.has_value() ? inputText->getString().toAnsiString() : std::to_string(inputValue);
                             if (!s.empty()) s.pop_back();
                             try { inputValue = s.empty() ? 0 : std::stoi(s); } catch(...) { inputValue = 0; }
@@ -406,18 +429,27 @@ void SFMLUI::displayGrid(const std::vector<std::vector<int>>& grid) {
     if (!window.isOpen() || currentState != GameState::GAME_SCREEN) return;
 
     window.clear(sf::Color(26, 26, 26));
+    // Draw top bar and controls (if initialized)
+    window.draw(topBar);
+    window.draw(startButton);
+    window.draw(pauseButton);
+    if (startText.has_value()) window.draw(*startText);
+    if (pauseText.has_value()) window.draw(*pauseText);
+    window.draw(inputBox);
+    if (inputText.has_value()) window.draw(*inputText);
 
+    // Draw grid below the top bar
     for (int y = 0; y < gridHeight; ++y) {
         for (int x = 0; x < gridWidth; ++x) {
             sf::RectangleShape cell({cellSize - 1.0f, cellSize - 1.0f});
             cell.setPosition({gridOffsetX + x * cellSize, gridOffsetY + y * cellSize});
-            
+
             if (grid[y][x] == 1) {
                 cell.setFillColor(sf::Color::White);
             } else {
                 cell.setFillColor(sf::Color::Black);
             }
-            
+
             window.draw(cell);
         }
     }

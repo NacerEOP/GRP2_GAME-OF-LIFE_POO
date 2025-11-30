@@ -32,8 +32,10 @@ private:
     sf::RectangleShape exitButton;
     // Game screen UI
     sf::RectangleShape topBar;
-    sf::RectangleShape startStopButton;
-    std::optional<sf::Text> startStopText;
+    sf::RectangleShape startButton;
+    sf::RectangleShape pauseButton;
+    std::optional<sf::Text> startText;
+    std::optional<sf::Text> pauseText;
     sf::RectangleShape inputBox;
     std::optional<sf::Text> inputText;
     bool simulationRunning = false;
