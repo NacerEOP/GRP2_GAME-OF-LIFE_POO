@@ -120,19 +120,19 @@ void SFMLUI::initializeGameUI() {
         std::cerr << "Retro font not loaded; game-screen will use default font." << std::endl;
     }
 
-    // Top bar (bright color for visibility)
+    // Top bar (dark theme)
     topBar.setSize({static_cast<float>(window.getSize().x), 64.0f});
-    topBar.setFillColor(sf::Color(50, 100, 160));
+    topBar.setFillColor(sf::Color(26, 26, 26));
 
-    // Start and Pause buttons (more visible)
+    // Start and Pause buttons (dark background, white text)
     startButton.setSize({120.0f, 44.0f});
-    startButton.setFillColor(sf::Color(60, 180, 75));
-    startButton.setOutlineColor(sf::Color::Black);
-    startButton.setOutlineThickness(2.0f);
+    startButton.setFillColor(sf::Color(26, 26, 26));
+    startButton.setOutlineColor(sf::Color(120, 120, 120));
+    startButton.setOutlineThickness(1.0f);
     pauseButton.setSize({120.0f, 44.0f});
-    pauseButton.setFillColor(sf::Color(220, 70, 70));
-    pauseButton.setOutlineColor(sf::Color::Black);
-    pauseButton.setOutlineThickness(2.0f);
+    pauseButton.setFillColor(sf::Color(26, 26, 26));
+    pauseButton.setOutlineColor(sf::Color(120, 120, 120));
+    pauseButton.setOutlineThickness(1.0f);
 
     // Start/Pause texts
     if (gameFont.getInfo().family.size() > 0) {
@@ -142,21 +142,22 @@ void SFMLUI::initializeGameUI() {
         startText = sf::Text(font, "Start", 20);
         pauseText = sf::Text(font, "Pause", 20);
     }
-    startText->setFillColor(sf::Color::Black);
-    pauseText->setFillColor(sf::Color::Black);
+    // Button text should be white on dark bg
+    startText->setFillColor(sf::Color::White);
+    pauseText->setFillColor(sf::Color::White);
 
     // Input box
     inputBox.setSize({160.0f, 40.0f});
-    inputBox.setFillColor(sf::Color(240, 240, 240));
-    inputBox.setOutlineThickness(2.0f);
-    inputBox.setOutlineColor(sf::Color::Black);
+    inputBox.setFillColor(sf::Color(26, 26, 26));
+    inputBox.setOutlineThickness(1.5f);
+    inputBox.setOutlineColor(sf::Color(120, 120, 120));
 
     if (gameFont.getInfo().family.size() > 0) {
         inputText = sf::Text(gameFont, std::to_string(inputValue), 18);
     } else {
         inputText = sf::Text(font, std::to_string(inputValue), 18);
     }
-    inputText->setFillColor(sf::Color::Black);
+    inputText->setFillColor(sf::Color::White);
 
     // ensure positions are correct
     updateView();
