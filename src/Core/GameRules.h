@@ -28,16 +28,15 @@ protected:
 class BasicRule : public Rule
 {
 public:
-    BasicRule() : Rule(new VonNeumannNeighborhood()) {}
+    BasicRule() : Rule(new Neighborhoods::VonNeumannNeighborhood()) {}
 
     bool computeNextState(const Cell& cell, const Grid& grid) const override;
 };
 
-
 class ConwayRule : public Rule
 {
 public:
-    ConwayRule() : Rule(new MooreNeighborhood()) {}
+    ConwayRule() : Rule(new Neighborhoods::MooreNeighborhood()) {}
 
     bool computeNextState(const Cell& cell, const Grid& grid) const override;
 };
@@ -56,16 +55,19 @@ public:
 };
 
 
-class MooreNeighborhood : public Neighborhood
-{
-public:
-    int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
-};
+namespace Neighborhoods {
 
+    class MooreNeighborhood : public Neighborhood
+    {
+    public:
+        int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
+    };
 
-class VonNeumannNeighborhood : public Neighborhood
-{
-public:
-    int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
-};
+    class VonNeumannNeighborhood : public Neighborhood
+    {
+    public:
+        int countAliveNeighbors(const Cell& cell, const Grid& grid) const override;
+    };
+
+} 
 
