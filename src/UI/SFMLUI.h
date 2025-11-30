@@ -34,8 +34,10 @@ private:
     sf::RectangleShape topBar;
     sf::RectangleShape startButton;
     sf::RectangleShape pauseButton;
+    sf::RectangleShape mainMenuButton;
     std::optional<sf::Text> startText;
     std::optional<sf::Text> pauseText;
+    std::optional<sf::Text> mainMenuText;
     sf::RectangleShape inputBox;
     std::optional<sf::Text> inputText;
     bool simulationRunning = false;

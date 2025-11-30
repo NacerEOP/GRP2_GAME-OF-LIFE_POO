@@ -159,6 +159,18 @@ void SFMLUI::initializeGameUI() {
     }
     inputText->setFillColor(sf::Color::White);
 
+    // Main menu button (right side of top bar)
+    mainMenuButton.setSize({120.0f, 36.0f});
+    mainMenuButton.setFillColor(sf::Color(26, 26, 26));
+    mainMenuButton.setOutlineColor(sf::Color(120, 120, 120));
+    mainMenuButton.setOutlineThickness(1.0f);
+    if (gameFont.getInfo().family.size() > 0) {
+        mainMenuText = sf::Text(gameFont, "Main Menu", 16);
+    } else {
+        mainMenuText = sf::Text(font, "Main Menu", 16);
+    }
+    mainMenuText->setFillColor(sf::Color::White);
+
     // ensure positions are correct
     updateView();
 }
@@ -200,10 +212,19 @@ void SFMLUI::updateView() {
 
         // input box to the right of pause button (inside top bar)
         inputBox.setPosition({pauseButton.getPosition().x + pauseButton.getSize().x + 12.0f,
-                      (topBarHeight - inputBox.getSize().y) / 2.0f});
+                              (topBarHeight - inputBox.getSize().y) / 2.0f});
         if (inputText.has_value()) {
             auto it = inputText->getLocalBounds();
             inputText->setPosition({inputBox.getPosition().x + 8.0f, inputBox.getPosition().y + inputBox.getSize().y / 2.0f - it.size.y / 2.0f});
+        }
+
+        // main menu button: right aligned inside the top bar
+        float mmw = mainMenuButton.getSize().x;
+        mainMenuButton.setPosition({gridOffsetX + gridWidthPixels - mmw - 8.0f, (topBarHeight - mainMenuButton.getSize().y) / 2.0f});
+        if (mainMenuText.has_value()) {
+            auto tb = mainMenuText->getLocalBounds();
+            mainMenuText->setPosition({mainMenuButton.getPosition().x + mainMenuButton.getSize().x / 2.0f - tb.size.x / 2.0f,
+                                       mainMenuButton.getPosition().y + mainMenuButton.getSize().y / 2.0f - tb.size.y / 2.0f});
         }
         
         sf::View view;
@@ -357,6 +378,12 @@ void SFMLUI::handleGameScreenEvents() {
                             startButton.setFillColor(sf::Color(80, 160, 80));
                             pauseButton.setFillColor(sf::Color(200, 120, 120));
                         }
+                        if (isMouseOver(mainMenuButton)) {
+                            // go back to the home screen
+                            currentState = GameState::HOME_SCREEN;
+                            // reset view and UI layout for home screen
+                            updateView();
+                        }
 
                         if (isMouseOver(inputBox)) {
                             inputActive = true;
@@ -438,6 +465,8 @@ void SFMLUI::displayGrid(const std::vector<std::vector<int>>& grid) {
     if (pauseText.has_value()) window.draw(*pauseText);
     window.draw(inputBox);
     if (inputText.has_value()) window.draw(*inputText);
+    window.draw(mainMenuButton);
+    if (mainMenuText.has_value()) window.draw(*mainMenuText);
 
     // Draw grid below the top bar
     for (int y = 0; y < gridHeight; ++y) {
