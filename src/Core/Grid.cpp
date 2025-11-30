@@ -1,29 +1,38 @@
 #include "Grid.h"
+#include <iostream>
 
+// constructeur
 Grid::Grid(int r, int c) : rows(r), cols(c) {
-    
+    cells = std::vector<std::vector<bool>>(rows, std::vector<bool>(cols, false));
 }
 
-Grid::~Grid() {
+// destructeur
+Grid::~Grid() {}
 
+// Getters
+int Grid::getR() const { return rows; }
+int Grid::getC() const { return cols; }
+
+// Setters
+void Grid::setR(int r) { rows = r; }
+void Grid::setC(int c) { cols = c; }
+
+// obtenir état d'une cellule
+bool Grid::getCell(int x, int y) const {
+    return cells[x][y];
 }
 
-int Grid::getR() const {
-    return r;
+// modifier état d'une cellule
+void Grid::setCell(int x, int y, bool state) {
+    cells[x][y] = state;
 }
 
-int Grid::getC() const {
-    return c;
+// affichage console
+void Grid::print() const {
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            std::cout << (cells[i][j] ? "1 " : "0 ");
+        }
+        std::cout << "\n";
+    }
 }
-
-void Grid::setR(int r) {
-    this->r = r;
-}
-
-void Grid::setC(int c) {
-    this->c = c;
-}
-
-
-
-
