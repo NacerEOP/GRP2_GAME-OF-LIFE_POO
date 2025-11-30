@@ -21,18 +21,20 @@ private:
     float gridOffsetY;
     
     GameState currentState;
+    sf::Font font;
     
-    sf::RectangleShape titleBackground;
+    std::optional<sf::Text> titleText;
+    std::optional<sf::Text> playButtonText;
+    std::optional<sf::Text> exitButtonText;
     sf::RectangleShape playButton;
     sf::RectangleShape exitButton;
-    sf::RectangleShape playText;
-    sf::RectangleShape exitText;
 
     void updateView();
     void initializeHomeScreen();
     void handleHomeScreenEvents();
     void drawHomeScreen();
     void handleGameScreenEvents();
+    bool isMouseOver(const sf::RectangleShape& button);
 
 public:
     SFMLUI(int width, int height, int cellSize);
