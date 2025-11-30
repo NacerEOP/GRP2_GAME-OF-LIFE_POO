@@ -22,15 +22,27 @@ private:
     
     GameState currentState;
     sf::Font font;
+    sf::Font gameFont;
+    bool gameFontLoaded = false;
     
     std::optional<sf::Text> titleText;
     std::optional<sf::Text> playButtonText;
     std::optional<sf::Text> exitButtonText;
     sf::RectangleShape playButton;
     sf::RectangleShape exitButton;
+    // Game screen UI
+    sf::RectangleShape topBar;
+    sf::RectangleShape startStopButton;
+    std::optional<sf::Text> startStopText;
+    sf::RectangleShape inputBox;
+    std::optional<sf::Text> inputText;
+    bool simulationRunning = false;
+    int inputValue = 0;
+    bool inputActive = false;
 
     void updateView();
     void initializeHomeScreen();
+    void initializeGameUI();
     void handleHomeScreenEvents();
     void drawHomeScreen();
     void handleGameScreenEvents();

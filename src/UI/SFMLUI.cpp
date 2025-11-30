@@ -3,10 +3,11 @@
 #include <algorithm>
 #include <optional>
 #include <filesystem>
+#include <string>
 
 SFMLUI::SFMLUI(int width, int height, int cellSize)
     : gridWidth(width), gridHeight(height), baseCellSize(cellSize),
-      cellSize(static_cast<float>(cellSize)), gridOffsetX(10), gridOffsetY(10),
+      cellSize(static_cast<float>(cellSize)), gridOffsetX(0), gridOffsetY(0),
       currentState(GameState::HOME_SCREEN)
 {
     window.create(
@@ -83,6 +84,74 @@ void SFMLUI::initializeHomeScreen() {
 
     // Ensure view and text/button positions are correct before first draw
     updateView();
+
+    // Initialize game-screen UI elements (fonts may already be loaded above)
+    initializeGameUI();
+}
+
+void SFMLUI::initializeGameUI() {
+    namespace fs = std::filesystem;
+    std::vector<fs::path> candidates;
+    candidates.emplace_back("resources/fonts/Retro-font.ttf");
+    candidates.emplace_back("../resources/fonts/Retro-font.ttf");
+    candidates.emplace_back("../../resources/fonts/Retro-font.ttf");
+
+    fs::path srcPath = fs::path(__FILE__);
+    if (srcPath.has_parent_path()) {
+        fs::path projectRoot = srcPath.parent_path().parent_path().parent_path();
+        candidates.emplace_back(projectRoot / "resources" / "fonts" / "Retro-font.ttf");
+    }
+
+    bool loaded = false;
+    for (const auto &p : candidates) {
+        try {
+            auto abs = fs::absolute(p);
+            if (gameFont.openFromFile(p.string())) {
+                loaded = true;
+                break;
+            } else {
+                std::cerr << "Failed to load Retro font: " << p.string() << std::endl;
+                std::cerr << "    Absolute path: " << abs.string() << std::endl;
+            }
+        } catch (const std::exception &ex) {
+            std::cerr << "Exception while checking Retro font path: " << ex.what() << std::endl;
+        }
+    }
+    if (!loaded) {
+        std::cerr << "Retro font not loaded; game-screen will use default font." << std::endl;
+    }
+
+    // Top bar
+    topBar.setSize({static_cast<float>(window.getSize().x), 60.0f});
+    topBar.setFillColor(sf::Color(40, 40, 40));
+
+    // Start/Stop button
+    startStopButton.setSize({120.0f, 40.0f});
+    startStopButton.setFillColor(sf::Color(80, 80, 80));
+
+    // Start/Stop text
+    if (gameFont.getInfo().family.size() > 0) {
+        startStopText = sf::Text(gameFont, "Start", 20);
+    } else {
+        startStopText = sf::Text(font, "Start", 20);
+    }
+    startStopText->setFillColor(sf::Color::White);
+
+    // Input box
+    inputBox.setSize({140.0f, 36.0f});
+    inputBox.setFillColor(sf::Color::Black);
+    inputBox.setOutlineThickness(2.0f);
+    inputBox.setOutlineColor(sf::Color(120, 120, 120));
+
+    if (gameFont.getInfo().family.size() > 0) {
+        inputText = sf::Text(gameFont, std::to_string(inputValue), 18);
+    } else {
+        inputText = sf::Text(font, std::to_string(inputValue), 18);
+    }
+    inputText->setFillColor(sf::Color::White);
+
+    // ensure positions are correct
+    updateView();
 }
 
 void SFMLUI::updateView() {
@@ -91,14 +160,35 @@ void SFMLUI::updateView() {
     auto windowSize = window.getSize();
     
     if (currentState == GameState::GAME_SCREEN) {
+        const float topBarHeight = 60.0f;
         float cellSizeX = static_cast<float>(windowSize.x) / static_cast<float>(gridWidth);
-        float cellSizeY = static_cast<float>(windowSize.y) / static_cast<float>(gridHeight);
+        float cellSizeY = (static_cast<float>(windowSize.y) - topBarHeight) / static_cast<float>(gridHeight);
         cellSize = std::min(cellSizeX, cellSizeY);
         
         float gridWidthPixels = cellSize * gridWidth;
         float gridHeightPixels = cellSize * gridHeight;
         gridOffsetX = (static_cast<float>(windowSize.x) - gridWidthPixels) / 2.0f;
-        gridOffsetY = (static_cast<float>(windowSize.y) - gridHeightPixels) / 2.0f;
+        // place grid below the top bar and center in remaining space
+        gridOffsetY = topBarHeight + (static_cast<float>(windowSize.y) - topBarHeight - gridHeightPixels) / 2.0f;
+        // update top bar and controls positions
+        topBar.setSize({static_cast<float>(windowSize.x), topBarHeight});
+        topBar.setPosition({0.0f, 0.0f});
+
+        // start/stop button left side
+        startStopButton.setPosition({10.0f, (topBarHeight - startStopButton.getSize().y) / 2.0f});
+        if (startStopText.has_value()) {
+            auto tb = startStopText->getLocalBounds();
+            startStopText->setPosition({startStopButton.getPosition().x + startStopButton.getSize().x / 2.0f - tb.size.x / 2.0f,
+                                        startStopButton.getPosition().y + startStopButton.getSize().y / 2.0f - tb.size.y / 2.0f});
+        }
+
+        // input box to the right of button
+        inputBox.setPosition({startStopButton.getPosition().x + startStopButton.getSize().x + 12.0f,
+                              (topBarHeight - inputBox.getSize().y) / 2.0f});
+        if (inputText.has_value()) {
+            auto it = inputText->getLocalBounds();
+            inputText->setPosition({inputBox.getPosition().x + 8.0f, inputBox.getPosition().y + inputBox.getSize().y / 2.0f - it.size.y / 2.0f});
+        }
         
         sf::View view;
         view.setSize({static_cast<float>(windowSize.x), static_cast<float>(windowSize.y)});
@@ -148,6 +238,13 @@ void SFMLUI::updateView() {
 
 void SFMLUI::drawHomeScreen() {
     window.clear(sf::Color(26, 26, 26));
+
+    // Draw top bar and controls
+    window.draw(topBar);
+    window.draw(startStopButton);
+    if (startStopText.has_value()) window.draw(*startStopText);
+    window.draw(inputBox);
+    if (inputText.has_value()) window.draw(*inputText);
     
     if (titleText.has_value()) {
         window.draw(*titleText);
@@ -220,22 +317,84 @@ void SFMLUI::handleHomeScreenEvents() {
 
 void SFMLUI::handleGameScreenEvents() {
     while (auto event = window.pollEvent()) {
+        // handle window close
         if (event->is<sf::Event::Closed>()) {
             currentState = GameState::EXIT;
             window.close();
             return;
         }
-        
+
+        // resize -> recompute layout
         if (event->is<sf::Event::Resized>()) {
             updateView();
         }
-        
+
+        // mouse clicks
+        if (event->is<sf::Event::MouseButtonPressed>()) {
+            event->visit([this](auto&& ev) {
+                if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::MouseButtonPressed>) {
+                    if (ev.button == sf::Mouse::Button::Left) {
+                        if (isMouseOver(startStopButton)) {
+                            simulationRunning = !simulationRunning;
+                            if (startStopText.has_value()) {
+                                if (simulationRunning) startStopText->setString("Stop");
+                                else startStopText->setString("Start");
+                            }
+                        }
+
+                        if (isMouseOver(inputBox)) {
+                            inputActive = true;
+                        } else {
+                            inputActive = false;
+                        }
+                    }
+                }
+            });
+        }
+
+        // text entry for number input
+        // We handle numeric input via KeyPressed events to avoid templated
+        // visitor instantiation issues with some SFML versions.
+
+        // key presses (e.g., Escape to home)
         if (event->is<sf::Event::KeyPressed>()) {
             event->visit([this](auto&& ev) {
                 if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::KeyPressed>) {
+                    // Escape -> back to home
                     if (ev.scancode == sf::Keyboard::Scancode::Escape) {
                         currentState = GameState::HOME_SCREEN;
                         updateView();
+                        return;
+                    }
+
+                    // Space -> toggle simulation
+                    if (ev.scancode == sf::Keyboard::Scancode::Space) {
+                        simulationRunning = !simulationRunning;
+                        if (startStopText.has_value()) {
+                            if (simulationRunning) startStopText->setString("Stop");
+                            else startStopText->setString("Start");
+                        }
+                        return;
+                    }
+
+                    // If input is active, accept Num0..Num9 and Backspace
+                    if (inputActive) {
+                        // Scancodes for numbers (Num0..Num9)
+                        if (ev.scancode >= sf::Keyboard::Scancode::Num0 && ev.scancode <= sf::Keyboard::Scancode::Num9) {
+                            int digit = static_cast<int>(ev.scancode) - static_cast<int>(sf::Keyboard::Scancode::Num0);
+                            // append digit
+                            std::string s = inputText.has_value() ? inputText->getString().toAnsiString() : std::to_string(inputValue);
+                            s.push_back('0' + digit);
+                            try { inputValue = std::stoi(s); } catch(...) { }
+                            if (inputText.has_value()) inputText->setString(s);
+                        } else if (ev.scancode == sf::Keyboard::Scancode::Backspace) {
+                            std::string s = inputText.has_value() ? inputText->getString().toAnsiString() : std::to_string(inputValue);
+                            if (!s.empty()) s.pop_back();
+                            try { inputValue = s.empty() ? 0 : std::stoi(s); } catch(...) { inputValue = 0; }
+                            if (inputText.has_value()) inputText->setString(s);
+                        } else if (ev.scancode == sf::Keyboard::Scancode::Enter) {
+                            inputActive = false;
+                        }
                     }
                 }
             });
