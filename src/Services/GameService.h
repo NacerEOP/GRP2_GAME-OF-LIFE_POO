@@ -2,36 +2,46 @@
 #pragma once
 
 #include "../Core/Grid.h"
+#include <atomic>
+#include <string>
 
-// Rule and neighborhood enums used by the service interface
-enum class RuleType { BASIC, CONWAY };
-enum class NeighborhoodType { MOORE, VON_NEUMANN };
-
-class GameService
-{
+class GameService {
 public:
-	virtual ~GameService() = default;
+	GameService();
+	~GameService();
 
-	// Control simulation
-	virtual void start() = 0;
-	virtual void pause() = 0;
-	virtual void step() = 0; // advance one generation
-	virtual void reset() = 0;
+	void start();
+	void pause();
+	void step();
+	void reset();
 
-	// Query state
-	virtual const Grid& getGrid() const = 0;
-	virtual bool isRunning() const = 0;
+	bool isRunning() const;
+	int getTickMs() const { return tickMs; }
 
-	// Configuration
-	virtual void setGridSize(GridSize size) = 0;
-	virtual void setGridDimensions(int rows, int cols) = 0;
-	virtual void setRuleType(RuleType rt) = 0;
-	virtual RuleType getRuleType() const = 0;
+	Grid &getGrid() { return grid; }
+	const Grid &getGrid() const { return grid; }
 
-	// Tick configuration
-	virtual int getTickMs() const = 0;
-	virtual void setTickMs(int ms) = 0;
+	void setGridDimensions(int rows, int cols) { grid.setGridDimensions(rows, cols); buffer.setGridDimensions(rows, cols); }
+	void setInitialGrid(const Grid &g) { grid = g; buffer = g; }
+
+	// convenience: set predefined sizes
+	void setGridSize(GridSize size) { grid.setGridSize(size); buffer.setGridSize(size); }
+
+	// rule type (console UI toggles this)
+	enum class RuleType { BASIC, CONWAY };
+	void setRuleType(RuleType rt) { ruleType = rt; }
+	RuleType getRuleType() const { return ruleType; }
+
+	void setOutputBase(const std::string &b) { outputBase = b; }
+	std::string getOutputBase() const { return outputBase; }
+
+	void setTickMs(int ms) { tickMs = ms; }
+
+private:
+	Grid grid;
+	Grid buffer;
+	int tickMs = 200;
+	std::atomic<bool> running{false};
+	std::string outputBase;
+	RuleType ruleType = RuleType::CONWAY;
 };
-
-// Factory to create a simple concrete GameService for terminal testing
-GameService* createDefaultGameService();

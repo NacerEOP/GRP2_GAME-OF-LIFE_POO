@@ -1,68 +1,21 @@
-
 #pragma once
+#include <string>
 
-#include <iostream> 
-
-
-class Cell
-{
-protected:
-    int PositionX;
-    int PositionY;
-    bool Status; // true = alive, false = dead 
-    bool IsActive; // true = active, false = inactive
-
+class Cell {
 public:
-    Cell(int x, int y);
-    virtual ~Cell();
-    
-    // Getters
-    bool getStatus() const;
-    bool getIsActive() const;
-    int getPositionX() const;
-    int getPositionY() const;
-    
-    // Setters
-    void setStatus(bool newStatus);
-    void setIsActive(bool newIsActive);
-    void setPosition(int x, int y);
-    
-    // Pure virtual method to make Cell abstract
-    virtual void display() const = 0;
-};
+    enum class Type {
+        Normal,
+        Obstacle
+    };
 
+    Cell(bool alive = false, Type t = Type::Normal) : alive_(alive), type_(t) {}
+    bool isAlive() const { return alive_; }
+    void setAlive(bool a) { if(type_ != Type::Obstacle) alive_ = a; }
+    Type getType() const { return type_; }
+    void setType(Type t) { type_ = t; }
+    std::string toString() const { return isAlive() ? "1" : "0"; }
 
-class AliveCell : public Cell
-{
-public:
-    AliveCell(int x, int y);
-    virtual ~AliveCell();
-    void display() const override;
-};
-
-
-class DeadCell : public Cell
-{
-public:
-    DeadCell(int x, int y);
-    virtual ~DeadCell();
-    void display() const override;
-};
-
-
-class AliveObstacleCell : public Cell
-{
-public:
-    AliveObstacleCell(int x, int y);
-    virtual ~AliveObstacleCell();
-    void display() const override;
-};
-
-
-class DeadObstacleCell : public Cell
-{
-public:
-    DeadObstacleCell(int x, int y);
-    virtual ~DeadObstacleCell();
-    void display() const override;
+private:
+    bool alive_;
+    Type type_;
 };

@@ -2,8 +2,8 @@
 #include "Services/GameService.h"
 
 int main() {
-    GameService* service = createDefaultGameService();
-    service->setGridSize(GridSize::SMALL); // <--- set small grid at startup
+    GameService* service = new GameService();
+    service->setGridSize(GridSize::NORMAL); // set normal grid at startup
     ConsoleUI ui(*service);
     ui.run();
     delete service;
