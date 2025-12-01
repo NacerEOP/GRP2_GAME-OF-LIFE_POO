@@ -1,8 +1,10 @@
 
 #include "GameService.h"
 #include "../Core/GameRules.h"
+#include "FileService.h"
 #include <vector>
 #include <memory>
+#include <filesystem>
 
 GameService::GameService() {
 	// default 20x20
@@ -25,6 +27,12 @@ void GameService::setRuleType(RuleType rt) {
 }
 
 void GameService::step() {
+	// Stop if we've reached the requested iteration target
+	if (iterationTarget > 0 && currentIteration >= iterationTarget) {
+		running = false;
+		return;
+	}
+
 	int rows = grid.getR();
 	int cols = grid.getC();
 	// use rules polymorphically if available
@@ -38,6 +46,15 @@ void GameService::step() {
 		}
 		// copy buffer back
 		for (int r = 0; r < rows; ++r) for (int c = 0; c < cols; ++c) grid.setCell(r, c, buffer.getCell(r, c));
+		// write iteration output if requested
+		if (!outputBase.empty()) {
+			++currentIteration;
+			FileService::writeGridIteration(outputBase, currentIteration, grid);
+			// if we reached the target, pause the simulation
+			if (iterationTarget > 0 && currentIteration >= iterationTarget) {
+				running = false;
+			}
+		}
 	} else {
 		// fallback: do nothing
 	}
@@ -46,6 +63,24 @@ void GameService::step() {
 void GameService::reset() {
 	grid.setGridDimensions(20,20);
 	buffer.setGridDimensions(20,20);
+}
+
+std::vector<std::string> GameService::listInputFiles() const {
+	return FileService::listInputFiles("Input");
+}
+
+bool GameService::loadInitialFromFile(const std::string &path) {
+	Grid g;
+	if (!FileService::readGridFromFile(path, g)) return false;
+	grid = g;
+	buffer = g;
+	// set output base to input file stem
+	try {
+		std::filesystem::path p(path);
+		outputBase = p.stem().string();
+	} catch (...) { outputBase = "input"; }
+	currentIteration = 0;
+	return true;
 }
 
 

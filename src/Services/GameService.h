@@ -45,6 +45,15 @@ public:
 	void setOutputBase(const std::string &b) { outputBase = b; }
 	std::string getOutputBase() const { return outputBase; }
 
+	// Input file helpers (UI calls GameService; GameService delegates to FileService)
+	std::vector<std::string> listInputFiles() const;
+	bool loadInitialFromFile(const std::string &path);
+
+	// Iteration control and output
+	void setIterationTarget(int it) { iterationTarget = it; }
+	int getIterationTarget() const { return iterationTarget; }
+	int getIterationIndex() const { return currentIteration; }
+
 	void setTickMs(int ms) { tickMs = ms; }
 
 private:
@@ -55,4 +64,6 @@ private:
 	std::string outputBase;
 	RuleType ruleType = RuleType::CONWAY;
 	std::unique_ptr<GameRules> rules;
+	int iterationTarget = 0; // 0 = infinite
+	int currentIteration = 0;
 };

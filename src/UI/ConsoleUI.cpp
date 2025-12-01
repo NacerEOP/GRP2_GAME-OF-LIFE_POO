@@ -4,6 +4,9 @@
 #include <thread>
 #include <chrono>
 #include <cstdlib> // system("cls")
+#include <vector>
+#include <string>
+#include <limits>
 #include "../Input/ConsoleInput.h"
 
 ConsoleUI::ConsoleUI(GameService& svc) : service(svc) {}
@@ -15,7 +18,37 @@ void ConsoleUI::run() {
 	using clock = std::chrono::steady_clock;
 	auto last = clock::now();
 
-	//drawHelp();
+	// At startup, check Input folder for .txt files and allow the user to pick one
+	auto files = service.listInputFiles();
+	if (!files.empty()) {
+		std::cout << "Found input files:\n";
+		for (size_t i = 0; i < files.size(); ++i) std::cout << "  " << (i+1) << ") " << files[i] << "\n";
+		std::cout << "Choose a file by number (0 = skip): ";
+		int choice = -1;
+		while (!(std::cin >> choice) || choice < 0 || choice > (int)files.size()) {
+			std::cin.clear(); std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			std::cout << "Invalid choice. Enter a number between 0 and " << files.size() << ": ";
+		}
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		if (choice > 0) {
+			if (service.loadInitialFromFile(files[choice-1])) {
+				std::cout << "Loaded " << files[choice-1] << "\n";
+			} else {
+				std::cout << "Failed to load file.\n";
+			}
+		}
+
+		// ask for iteration target
+		std::cout << "Enter number of iterations (0 = infinite): ";
+		int it = -1;
+		while (!(std::cin >> it) || it < 0) {
+			std::cin.clear(); std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			std::cout << "Invalid number. Enter 0 or a positive integer: ";
+		}
+		service.setIterationTarget(it);
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+
 	render();
 
 	while (!quit) {
@@ -47,7 +80,6 @@ void ConsoleUI::render() const {
 
 	for (int i = 0; i < service.getRows(); ++i) {
 		for (int j = 0; j < service.getCols(); ++j) {
-			service.setCell(i, j, 1);
 			bool alive = service.getCell(i, j);
 			std::cout << (alive ? '1' : '0');
 		}
