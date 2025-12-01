@@ -46,14 +46,17 @@ void GameService::step() {
 		}
 		// copy buffer back
 		for (int r = 0; r < rows; ++r) for (int c = 0; c < cols; ++c) grid.setCell(r, c, buffer.getCell(r, c));
-		// write iteration output if requested
-		if (!outputBase.empty()) {
+		// write iteration output if requested and iterationTarget != 0 (disable on infinite runs)
+		if (!outputBase.empty() && iterationTarget > 0) {
 			++currentIteration;
 			FileService::writeGridIteration(outputBase, currentIteration, grid);
 			// if we reached the target, pause the simulation
 			if (iterationTarget > 0 && currentIteration >= iterationTarget) {
 				running = false;
 			}
+		} else if (!outputBase.empty() && iterationTarget == 0) {
+			// infinite run: do not write iteration files to avoid disk growth
+			++currentIteration; // still count iterations internally if desired
 		}
 	} else {
 		// fallback: do nothing
@@ -61,8 +64,15 @@ void GameService::step() {
 }
 
 void GameService::reset() {
-	grid.setGridDimensions(20,20);
-	buffer.setGridDimensions(20,20);
+	if (hasInitial) {
+		grid = initialGrid;
+		buffer = initialGrid;
+	} else {
+		grid.setGridDimensions(20,20);
+		buffer.setGridDimensions(20,20);
+	}
+	// reset iteration counter
+	currentIteration = 0;
 }
 
 std::vector<std::string> GameService::listInputFiles() const {
@@ -74,6 +84,9 @@ bool GameService::loadInitialFromFile(const std::string &path) {
 	if (!FileService::readGridFromFile(path, g)) return false;
 	grid = g;
 	buffer = g;
+	// remember initial loaded state
+	initialGrid = g;
+	hasInitial = true;
 	// set output base to input file stem
 	try {
 		std::filesystem::path p(path);

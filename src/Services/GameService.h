@@ -32,7 +32,7 @@ public:
 	void setCell(int r, int c, bool v) { grid.setCell(r, c, v); }
 
 	void setGridDimensions(int rows, int cols) { grid.setGridDimensions(rows, cols); buffer.setGridDimensions(rows, cols); }
-	void setInitialGrid(const Grid &g) { grid = g; buffer = g; }
+	void setInitialGrid(const Grid &g) { grid = g; buffer = g; initialGrid = g; hasInitial = true; }
 
 	// convenience: set predefined sizes
 	void setGridSize(GridSize size) { grid.setGridSize(size); buffer.setGridSize(size); }
@@ -66,4 +66,7 @@ private:
 	std::unique_ptr<GameRules> rules;
 	int iterationTarget = 0; // 0 = infinite
 	int currentIteration = 0;
+	// Remember initial grid loaded from a file so reset() can restore it
+	Grid initialGrid;
+	bool hasInitial = false;
 };
