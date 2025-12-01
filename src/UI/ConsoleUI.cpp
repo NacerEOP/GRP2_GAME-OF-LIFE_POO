@@ -65,9 +65,9 @@ void ConsoleUI::run() {
 				break;
 			case 'c':
 			case 'C': {
-				// toggle rule type if possible
-				RuleType rt = service.getRuleType();
-				service.setRuleType(rt == RuleType::CONWAY ? RuleType::BASIC : RuleType::CONWAY);
+				// toggle rule type if possible (GameService::RuleType)
+				auto rt = service.getRuleType();
+				service.setRuleType(rt == GameService::RuleType::CONWAY ? GameService::RuleType::BASIC : GameService::RuleType::CONWAY);
 				break;
 			}
 			case '+': {
