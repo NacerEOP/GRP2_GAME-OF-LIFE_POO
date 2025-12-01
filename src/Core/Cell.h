@@ -1,21 +1,50 @@
 #pragma once
 #include <string>
+#include <memory>
 
 class Cell {
 public:
-    enum class Type {
-        Normal,
-        Obstacle
-    };
+    enum class Type { Normal, Obstacle };
+    virtual ~Cell() = default;
 
-    Cell(bool alive = false, Type t = Type::Normal) : alive_(alive), type_(t) {}
-    bool isAlive() const { return alive_; }
-    void setAlive(bool a) { if(type_ != Type::Obstacle) alive_ = a; }
-    Type getType() const { return type_; }
-    void setType(Type t) { type_ = t; }
-    std::string toString() const { return isAlive() ? "1" : "0"; }
+    // Abstract interface
+    virtual bool isAlive() const = 0;
+    virtual void setAlive(bool a) = 0;
+    virtual Type getType() const = 0;
+    virtual void setType(Type t) = 0;
+    virtual std::string toString() const = 0;
 
-private:
-    bool alive_;
-    Type type_;
+    // Factory for a default concrete Cell implementation
+    static std::unique_ptr<Cell> createDefault(bool alive = false, Type t = Type::Normal);
 };
+
+
+class Cell_Alive:Cell
+{
+private:
+    /* data */
+public:
+    Cell_Alive(/* args */);
+    ~Cell_Alive();
+};
+
+class Cell_Dead:Cell
+{
+private:
+    /* data */
+public:
+    Cell_Dead(/* args */);
+    ~Cell_Dead();
+};
+
+class Cell_Obstacle:Cell
+{
+private:
+    /* data */
+public:
+    Cell_Obstacle(/* args */);
+    ~Cell_Obstacle();
+};
+
+
+

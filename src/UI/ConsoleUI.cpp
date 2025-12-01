@@ -3,8 +3,8 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <conio.h> // _kbhit, _getch (Windows)
 #include <cstdlib> // system("cls")
+#include "../Input/ConsoleInput.h"
 
 ConsoleUI::ConsoleUI(GameService& svc) : service(svc) {}
 
@@ -15,7 +15,7 @@ void ConsoleUI::run() {
 	using clock = std::chrono::steady_clock;
 	auto last = clock::now();
 
-	drawHelp();
+	//drawHelp();
 	render();
 
 	while (!quit) {
@@ -29,61 +29,12 @@ void ConsoleUI::run() {
 			}
 		}
 
-		if (_kbhit()) {
-			int ch = _getch();
-
-			switch (ch) {
-			case 'q':
-			case 'Q':
-				quit = true;
-				break;
-			case ' ': // toggle start/pause
-				if (service.isRunning()) service.pause();
-				else service.start();
-				break;
-			case 's':
-			case 'S':
-				service.step();
-				render();
-				break;
-			case 'r':
-			case 'R':
-				service.reset();
-				render();
-				break;
-			case '1':
-				service.setGridSize(GridSize::SMALL);
-				render();
-				break;
-			case '2':
-				service.setGridSize(GridSize::NORMAL);
-				render();
-				break;
-			case '3':
-				service.setGridSize(GridSize::LARGE);
-				render();
-				break;
-			case 'c':
-			case 'C': {
-				// toggle rule type if possible (GameService::RuleType)
-				auto rt = service.getRuleType();
-				service.setRuleType(rt == GameService::RuleType::CONWAY ? GameService::RuleType::BASIC : GameService::RuleType::CONWAY);
-				break;
-			}
-			case '+': {
-				int ms = service.getTickMs();
-				if (ms > 10) service.setTickMs(ms - 10);
-				break;
-			}
-			case '-': {
-				int ms = service.getTickMs();
-				service.setTickMs(ms + 10);
-				break;
-			}
-			default:
-				break;
-			}
-			drawHelp();
+		// Delegate input handling to ConsoleInput
+		static ConsoleInput inputHandler;
+		if (inputHandler.handleInput(service, quit)) {
+			// input processed; update display
+			render();
+			//drawHelp();
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(8));
@@ -94,19 +45,20 @@ void ConsoleUI::render() const {
 	// Clear the console (Windows)
 	std::system("cls");
 
-	const Grid& g = service.getGrid();
-	for (int i = 0; i < g.getR(); ++i) {
-		for (int j = 0; j < g.getC(); ++j) {
-			bool alive = g.getCell(i, j);
-			// using simple characters for terminal
-			std::cout << (alive ? 'O' : '.');
+	for (int i = 0; i < service.getRows(); ++i) {
+		for (int j = 0; j < service.getCols(); ++j) {
+			service.setCell(i, j, 1);
+			bool alive = service.getCell(i, j);
+			std::cout << (alive ? '1' : '0');
 		}
 		std::cout << '\n';
 	}
+	drawHelp();
 }
 
 void ConsoleUI::drawHelp() const {
-	std::cout << "Controls: Space=start/pause  s=step  r=reset  1/2/3=size (S/N/L)  c=toggle rule  +/-=speed  q=quit\n";
+	std::cout << "Controls: Space=start/pause  s=step  r=reset  e=edit r c s  1/2/3=size (S/N/L)  c=toggle rule  +/-=speed  q=quit\n";
 	std::cout << "Tick(ms): " << service.getTickMs() << "  Running: " << (service.isRunning() ? "Yes" : "No") << "\n";
 }
+
 
