@@ -1,25 +1,18 @@
 {
   "configurations": [
-    {
-      "name": "Windows",
-      "includePath": [
-        "${workspaceFolder}/**",
-        "C:/Users/NITRO/Documents/SFML Download/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit/SFML-3.0.2/include"
-      ],
-      "compilerPath": "\"C:/Users/NITRO/Documents/SFML Download/winlibs-x86_64-posix-seh-gcc-14.2.0-mingw-w64ucrt-12.0.0-r2/mingw64/bin/g++.exe\"",
-      "cStandard": "c17",
-      "cppStandard": "c++17",
-      "intelliSenseMode": "windows-gcc-x64",
-      "compilerArgs": [],
-      "browse": {
-        "path": [
-          "${workspaceFolder}/**",
-          "C:/Users/NITRO/Documents/SFML Download/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit/SFML-3.0.2/include"
-        ],
-        "limitSymbolsToIncludedHeaders": true,
-        "databaseFilename": ""
+      {
+          "name": "Mac",
+          "includePath": [
+              "${workspaceFolder}/**",
+              "/Users/MAC/Documents/GRP2_GAME-OF-LIFE_POO/src/**"
+          ],
+          "defines": [],
+          "macFrameworkPath": [],
+          "compilerPath": "/usr/bin/clang++",
+          "cStandard": "c11",
+          "cppStandard": "c++17",
+          "intelliSenseMode": "macos-clang-x64"
       }
-    }
   ],
   "version": 4
 }
