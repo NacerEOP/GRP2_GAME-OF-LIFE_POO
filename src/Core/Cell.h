@@ -11,40 +11,19 @@ public:
     virtual bool isAlive() const = 0;
     virtual void setAlive(bool a) = 0;
     virtual Type getType() const = 0;
-    virtual void setType(Type t) = 0;
     virtual std::string toString() const = 0;
 
-    // Factory for a default concrete Cell implementation
+    // Factories
     static std::unique_ptr<Cell> createDefault(bool alive = false, Type t = Type::Normal);
+    static std::unique_ptr<Cell> createAlive();
+    static std::unique_ptr<Cell> createDead();
+    static std::unique_ptr<Cell> createObstacle(bool alive = false);
 };
 
-
-class Cell_Alive:Cell
-{
-private:
-    /* data */
-public:
-    Cell_Alive(/* args */);
-    ~Cell_Alive();
-};
-
-class Cell_Dead:Cell
-{
-private:
-    /* data */
-public:
-    Cell_Dead(/* args */);
-    ~Cell_Dead();
-};
-
-class Cell_Obstacle:Cell
-{
-private:
-    /* data */
-public:
-    Cell_Obstacle(/* args */);
-    ~Cell_Obstacle();
-};
+// Concrete subclasses declared for clarity (definitions in Cell.cpp)
+class AliveCell;
+class DeadCell;
+class ObstacleCell;
 
 
 

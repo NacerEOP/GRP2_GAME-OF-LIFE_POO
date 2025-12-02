@@ -33,20 +33,42 @@ bool FileService::readGridFromFile(const std::string &path, Grid &out) {
     for (int r = 0; r < rows; ++r) {
         if (!std::getline(ifs, line)) {
             // missing row: treat as all zeros
-            for (int c = 0; c < cols; ++c) out.setCell(r, c, false);
+            for (int c = 0; c < cols; ++c) {
+                out.setCell(r, c, false);
+                out.setObstacle(r, c, false);
+            }
             continue;
         }
 
-        // parse integers from the line; if fewer than cols are present, pad with zeros
+        // parse tokens from the line; support 0/1 and obstacle markers A/a (alive obstacle) and D/d (dead obstacle)
         std::istringstream iss(line);
-        int value;
+        std::string token;
         int c = 0;
-        while (c < cols && (iss >> value)) {
-            out.setCell(r, c, value != 0);
+        while (c < cols && (iss >> token)) {
+            if (token.empty()) { ++c; continue; }
+            char ch = token[0];
+            if (ch == 'A' || ch == 'a') {
+                out.setCell(r, c, true);
+                out.setObstacle(r, c, true);
+            } else if (ch == 'D' || ch == 'd') {
+                out.setCell(r, c, false);
+                out.setObstacle(r, c, true);
+            } else {
+                // try numeric
+                int value = 0;
+                try {
+                    value = std::stoi(token);
+                } catch (...) { value = 0; }
+                out.setCell(r, c, value != 0);
+                out.setObstacle(r, c, false);
+            }
             ++c;
         }
         // pad remaining columns with zeros
-        for (; c < cols; ++c) out.setCell(r, c, false);
+        for (; c < cols; ++c) {
+            out.setCell(r, c, false);
+            out.setObstacle(r, c, false);
+        }
     }
 
     return true;
@@ -64,7 +86,11 @@ bool FileService::writeGridIteration(const std::string &baseName, int iter, cons
         ofs << g.getR() << " " << g.getC() << '\n';
         for (int r = 0; r < g.getR(); ++r) {
             for (int c = 0; c < g.getC(); ++c) {
-                ofs << (g.getCell(r,c) ? 1 : 0);
+                if (g.isObstacle(r, c)) {
+                    ofs << (g.getCell(r,c) ? 'A' : 'D');
+                } else {
+                    ofs << (g.getCell(r,c) ? 1 : 0);
+                }
                 if (c+1 < g.getC()) ofs << ' ';
             }
             ofs << '\n';

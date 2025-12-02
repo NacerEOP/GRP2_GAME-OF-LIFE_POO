@@ -19,6 +19,16 @@ void ConsoleUI::run() {
 	auto last = clock::now();
 
 	// At startup, check Input folder for .txt files and allow the user to pick one
+	// Ask whether to enable toric (wrap-around) behavior
+	{
+		std::string resp;
+		std::cout << "Enable toric wrap-around? (y/N): ";
+		std::getline(std::cin, resp);
+		if (!resp.empty() && (resp[0] == 'y' || resp[0] == 'Y')) service.setToric(true);
+		else service.setToric(false);
+	}
+
+	// At startup, check Input folder for .txt files and allow the user to pick one
 	auto files = service.listInputFiles();
 	if (!files.empty()) {
 		std::cout << "Found input files:\n";
@@ -103,7 +113,7 @@ void ConsoleUI::render() const {
 }
 
 void ConsoleUI::drawHelp() const {
-	std::cout << "Controls: Space=start/pause  s=step  r=reset  e=edit r c s  1/2/3=size (S/N/L)  c=toggle rule  +/-=speed  q=quit\n";
+	std::cout << "Controls: Space=start/pause  s=step  r=reset  0-9=load preset  1/2/3=size (S/N/L)  c=toggle rule  +/-=speed  q=quit\n";
 	std::cout << "Tick(ms): " << service.getTickMs() << "  Running: " << (service.isRunning() ? "Yes" : "No") << "\n";
 }
 

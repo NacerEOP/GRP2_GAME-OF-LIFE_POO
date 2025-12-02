@@ -16,9 +16,22 @@ private:
     int rows;
     int cols;
     std::vector<std::vector<bool>> cells;
+    // obstacle mask: true means this cell is an obstacle (static)
+    std::vector<std::vector<bool>> obstacles;
+    // toric (wrap-around) behavior
+    bool toric = false;
 
     // Méthode privée pour initialiser la grille
     void initializeGrid();
+
+public:
+    // toric control
+    void setToric(bool t);
+    bool isToric() const;
+
+    // obstacle accessors
+    void setObstacle(int x, int y, bool obs);
+    bool isObstacle(int x, int y) const;
 
 public:
     

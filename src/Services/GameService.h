@@ -49,6 +49,9 @@ public:
 	std::vector<std::string> listInputFiles() const;
 	bool loadInitialFromFile(const std::string &path);
 
+	// Load a hard-coded preset (0-9) stored in code
+	void loadPreset(int slot);
+
 	// Iteration control and output
 	void setIterationTarget(int it) { iterationTarget = it; }
 	int getIterationTarget() const { return iterationTarget; }
@@ -57,6 +60,10 @@ public:
 	int getSaveIterations() const { return saveIterations; }
 
 	void setTickMs(int ms) { tickMs = ms; }
+
+	// toric behavior control
+	void setToric(bool t) { grid.setToric(t); buffer.setToric(t); }
+	bool isToric() const { return grid.isToric(); }
 
 private:
 	Grid grid;
