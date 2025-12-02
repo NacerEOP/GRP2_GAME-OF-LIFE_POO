@@ -20,10 +20,40 @@ public:
     static std::unique_ptr<Cell> createObstacle(bool alive = false);
 };
 
-// Concrete subclasses declared for clarity (definitions in Cell.cpp)
-class AliveCell;
-class DeadCell;
-class ObstacleCell;
+// Concrete AliveCell - always alive (declaration only)
+class AliveCell : public Cell {
+public:
+    AliveCell();
+    ~AliveCell() override;
+    bool isAlive() const override;
+    void setAlive(bool a) override;
+    Type getType() const override;
+    std::string toString() const override;
+};
+
+// Concrete DeadCell - always dead (declaration only)
+class DeadCell : public Cell {
+public:
+    DeadCell();
+    ~DeadCell() override;
+    bool isAlive() const override;
+    void setAlive(bool a) override;
+    Type getType() const override;
+    std::string toString() const override;
+};
+
+// Concrete ObstacleCell - can be alive or dead (declaration only)
+class ObstacleCell : public Cell {
+public:
+    explicit ObstacleCell(bool alive = false);
+    ~ObstacleCell() override;
+    bool isAlive() const override;
+    void setAlive(bool a) override;
+    Type getType() const override;
+    std::string toString() const override;
+private:
+    bool alive_;
+};
 
 
 

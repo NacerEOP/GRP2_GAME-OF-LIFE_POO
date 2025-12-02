@@ -2,41 +2,31 @@
 #include <utility>
 #include <stdexcept>
 
-// Concrete AliveCell
-class AliveCell : public Cell {
-public:
-	AliveCell() = default;
-	~AliveCell() override = default;
-	bool isAlive() const override { return true; }
-	void setAlive(bool a) override { if (!a) throw std::runtime_error("Cannot set AliveCell to dead; replace with DeadCell"); }
-	Type getType() const override { return Type::Normal; }
-	std::string toString() const override { return "1"; }
-};
+// AliveCell implementations
+AliveCell::AliveCell() = default;
+AliveCell::~AliveCell() = default;
+bool AliveCell::isAlive() const { return true; }
+void AliveCell::setAlive(bool a) { if (!a) throw std::runtime_error("Cannot set AliveCell to dead; replace with DeadCell"); }
+Cell::Type AliveCell::getType() const { return Type::Normal; }
+std::string AliveCell::toString() const { return "1"; }
 
-// Concrete DeadCell
-class DeadCell : public Cell {
-public:
-	DeadCell() = default;
-	~DeadCell() override = default;
-	bool isAlive() const override { return false; }
-	void setAlive(bool a) override { if (a) throw std::runtime_error("Cannot set DeadCell to alive; replace with AliveCell"); }
-	Type getType() const override { return Type::Normal; }
-	std::string toString() const override { return "0"; }
-};
+// DeadCell implementations
+DeadCell::DeadCell() = default;
+DeadCell::~DeadCell() = default;
+bool DeadCell::isAlive() const { return false; }
+void DeadCell::setAlive(bool a) { if (a) throw std::runtime_error("Cannot set DeadCell to alive; replace with AliveCell"); }
+Cell::Type DeadCell::getType() const { return Type::Normal; }
+std::string DeadCell::toString() const { return "0"; }
 
-// Concrete ObstacleCell (can be alive or dead but is immutable under rules)
-class ObstacleCell : public Cell {
-public:
-	ObstacleCell(bool alive) : alive_(alive) {}
-	~ObstacleCell() override = default;
-	bool isAlive() const override { return alive_; }
-	void setAlive(bool a) override { alive_ = a; }
-	Type getType() const override { return Type::Obstacle; }
-	std::string toString() const override { return alive_ ? "A" : "D"; }
-private:
-	bool alive_;
-};
+// ObstacleCell implementations
+ObstacleCell::ObstacleCell(bool alive) : alive_(alive) {}
+ObstacleCell::~ObstacleCell() = default;
+bool ObstacleCell::isAlive() const { return alive_; }
+void ObstacleCell::setAlive(bool a) { alive_ = a; }
+Cell::Type ObstacleCell::getType() const { return Type::Obstacle; }
+std::string ObstacleCell::toString() const { return alive_ ? "A" : "D"; }
 
+// Factory implementations
 std::unique_ptr<Cell> Cell::createDefault(bool alive, Type t) {
 	if (t == Type::Obstacle) {
 		return std::make_unique<ObstacleCell>(alive);
