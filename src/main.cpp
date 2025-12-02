@@ -1,6 +1,7 @@
 #include "UI/ConsoleUI.h"
 #include "Services/GameService.h"
 #include <iostream>
+#include <limits>
 
 
 int main() {
