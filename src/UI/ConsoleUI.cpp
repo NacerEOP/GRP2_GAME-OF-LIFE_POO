@@ -47,6 +47,20 @@ void ConsoleUI::run() {
 		}
 		service.setIterationTarget(it);
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+		// ask for delay (tick ms)
+		std::cout << "Enter delay between iterations in ms (default " << service.getTickMs() << "): ";
+		int delay = -1;
+		while (!(std::cin >> delay) || delay < 0) {
+			std::cin.clear(); std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			std::cout << "Invalid number. Enter 0 or a positive integer for ms: ";
+		}
+		service.setTickMs(delay);
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+		// Use the same iteration count as the number of iterations to save
+		// (0 = infinite run, and 0 means save none)
+		service.setSaveIterations(it);
 	}
 
 	render();

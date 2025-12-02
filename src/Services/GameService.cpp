@@ -27,12 +27,6 @@ void GameService::setRuleType(RuleType rt) {
 }
 
 void GameService::step() {
-	// Stop if we've reached the requested iteration target
-	if (iterationTarget > 0 && currentIteration >= iterationTarget) {
-		running = false;
-		return;
-	}
-
 	int rows = grid.getR();
 	int cols = grid.getC();
 	// use rules polymorphically if available
@@ -46,17 +40,11 @@ void GameService::step() {
 		}
 		// copy buffer back
 		for (int r = 0; r < rows; ++r) for (int c = 0; c < cols; ++c) grid.setCell(r, c, buffer.getCell(r, c));
-		// write iteration output if requested and iterationTarget != 0 (disable on infinite runs)
-		if (!outputBase.empty() && iterationTarget > 0) {
-			++currentIteration;
+		// increment iteration counter
+		++currentIteration;
+		// decide whether to write this iteration to file: save only first `saveIterations` when >0
+		if (!outputBase.empty() && saveIterations > 0 && currentIteration <= saveIterations) {
 			FileService::writeGridIteration(outputBase, currentIteration, grid);
-			// if we reached the target, pause the simulation
-			if (iterationTarget > 0 && currentIteration >= iterationTarget) {
-				running = false;
-			}
-		} else if (!outputBase.empty() && iterationTarget == 0) {
-			// infinite run: do not write iteration files to avoid disk growth
-			++currentIteration; // still count iterations internally if desired
 		}
 	} else {
 		// fallback: do nothing

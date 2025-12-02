@@ -53,6 +53,8 @@ public:
 	void setIterationTarget(int it) { iterationTarget = it; }
 	int getIterationTarget() const { return iterationTarget; }
 	int getIterationIndex() const { return currentIteration; }
+	void setSaveIterations(int n) { saveIterations = n; }
+	int getSaveIterations() const { return saveIterations; }
 
 	void setTickMs(int ms) { tickMs = ms; }
 
@@ -69,4 +71,5 @@ private:
 	// Remember initial grid loaded from a file so reset() can restore it
 	Grid initialGrid;
 	bool hasInitial = false;
+	int saveIterations = 0; // 0 = save none; if >0 save only first N iterations
 };
