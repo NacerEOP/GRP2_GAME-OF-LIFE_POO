@@ -23,9 +23,17 @@ void ConsoleUI::run() {
 	{
 		std::string resp;
 		std::cout << "Enable toric wrap-around? (y/N): ";
-		std::getline(std::cin, resp);
-		if (!resp.empty() && (resp[0] == 'y' || resp[0] == 'Y')) service.setToric(true);
-		else service.setToric(false);
+		// use operator>> to skip any leftover newline from earlier input
+		if (std::cin >> resp) {
+			if (!resp.empty() && (resp[0] == 'y' || resp[0] == 'Y')) service.setToric(true);
+			else service.setToric(false);
+		} else {
+			// input error: default to false
+			service.setToric(false);
+			std::cin.clear();
+		}
+		// consume rest of the line to leave stdin in a clean state
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	}
 
 	// At startup, check Input folder for .txt files and allow the user to pick one
