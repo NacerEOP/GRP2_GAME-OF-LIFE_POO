@@ -1,11 +1,13 @@
-#include "UI/SFMLUI.h"
 #include "UI/ConsoleUI.h"
 #include "Services/GameService.h"
 #include <iostream>
 #include <limits>
+
+#include "UI/SFMLUI.h"
 #include <vector>
 #include <thread>
 #include <chrono>
+
 
 int main() {
    int choix;
@@ -36,45 +38,37 @@ int main() {
     }
     else if (choix==2)
     {
-       
+        #ifdef _WIN32
+        _putenv("SFML_OPENGL_ES=1");
+        #endif
 
-    #ifdef _WIN32
-    _putenv("SFML_OPENGL_ES=1");
-    #endif
+        GameService* service = new GameService();
+        service->setGridSize(GridSize::NORMAL);
+        SFMLUI ui(*service);
 
-    SFMLUI ui(50, 30, 15);
+        if (!ui.isWindowOpen()) {
+            delete service;
+            return -1;
+        }
 
-    if (!ui.isWindowOpen()) {
-        return -1;
-    }
-
-    std::vector<std::vector<int>> grid(30, std::vector<int>(50, 0));
-    
-    grid[10][10] = 1;
-    grid[11][11] = 1;
-    grid[12][9] = 1;
-    grid[12][10] = 1;
-    grid[12][11] = 1;
-
-    while (ui.isWindowOpen()) {
-        if (!ui.handleEvents()) {
-            break;
+        while (ui.isWindowOpen()) {
+            if (!ui.handleEvents()) {
+                break;
+            }
+            
+            // Step the simulation
+            if (service->isRunning()) {
+                service->step();
+            }
+            
+            std::this_thread::sleep_for(std::chrono::milliseconds(service->getTickMs()));
         }
         
-        if (ui.getCurrentState() == GameState::GAME_SCREEN) {
-            ui.displayGrid(grid);
-        }
-        
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
-    }
-
-    
-}
-    return 0;
+        delete service;
     }
     
                                                          
 
 
-    
-
+    return 0;
+}
