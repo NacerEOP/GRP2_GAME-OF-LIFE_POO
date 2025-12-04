@@ -1,19 +1,15 @@
 #include "SFMLUI.h"
+#include "../Services/GameService.h"
 #include <iostream>
 #include <algorithm>
 #include <optional>
 #include <filesystem>
 #include <string>
-#include <unordered_map>
-#include "../Core/Grid.h"
+#include <chrono>
 
-namespace {
-    std::unordered_map<const SFMLUI*, Grid> uiGrids;
-}
-
-SFMLUI::SFMLUI(int width, int height, int cellSize)
-    : gridWidth(width), gridHeight(height), baseCellSize(cellSize),
-      cellSize(static_cast<float>(cellSize)), gridOffsetX(0), gridOffsetY(0),
+SFMLUI::SFMLUI(GameService& svc)
+    : service(svc), gridWidth(50), gridHeight(30), baseCellSize(15),
+      cellSize(static_cast<float>(baseCellSize)), gridOffsetX(0), gridOffsetY(0),
       currentState(GameState::HOME_SCREEN)
 {
     window.create(
@@ -28,12 +24,20 @@ SFMLUI::SFMLUI(int width, int height, int cellSize)
         initializeHomeScreen();
         window.setMinimumSize(sf::Vector2u(400, 300));
     }
+    
+    // Sync grid dimensions from GameService
+    syncGridWithService();
+}
 
-    // Create an internal Grid for this UI instance and synchronize sizes.
-    uiGrids[this] = Grid(gridHeight, gridWidth);
-    // sync our width/height to the Grid
-    gridWidth = uiGrids[this].getC();
-    gridHeight = uiGrids[this].getR();
+void SFMLUI::syncGridWithService() {
+    int newCols = service.getCols();
+    int newRows = service.getRows();
+    if (newCols != gridWidth || newRows != gridHeight) {
+        gridWidth = newCols;
+        gridHeight = newRows;
+        // Recompute layout when grid size changes
+        updateView();
+    }
 }
 
 bool SFMLUI::isMouseOver(const sf::RectangleShape& button) {
@@ -97,6 +101,9 @@ void SFMLUI::initializeHomeScreen() {
     // Ensure view and text/button positions are correct before first draw
     updateView();
 
+    // Provide input handler with UI context for home screen buttons
+    inputHandler.setUIContext(&window, &playButton, &exitButton, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+
     // Do NOT initialize game UI here — initialize it when entering GAME_SCREEN
 }
 
@@ -135,6 +142,45 @@ void SFMLUI::initializeGameUI() {
     // Top bar (dark theme) — size will be set in updateView() to match grid width
     topBar.setSize({0.0f, 64.0f});
     topBar.setFillColor(sf::Color(26, 26, 26));
+
+    // Tick / delay text
+    if (gameFont.getInfo().family.size() > 0) {
+        tickText = sf::Text(gameFont, std::to_string(service.getTickMs()) + " ms", 18);
+    } else {
+        tickText = sf::Text(font, std::to_string(service.getTickMs()) + " ms", 18);
+    }
+    tickText->setFillColor(sf::Color::White);
+
+    // Toric toggle button
+    toricToggleButton.setSize({120.0f, 36.0f});
+    toricToggleButton.setFillColor(sf::Color(40, 40, 40));
+    toricToggleButton.setOutlineColor(sf::Color(120, 120, 120));
+    toricToggleButton.setOutlineThickness(1.0f);
+    if (gameFont.getInfo().family.size() > 0) {
+        toricText = sf::Text(gameFont, service.isToric() ? "Toric: ON" : "Toric: OFF", 16);
+    } else {
+        toricText = sf::Text(font, service.isToric() ? "Toric: ON" : "Toric: OFF", 16);
+    }
+    toricText->setFillColor(sf::Color::White);
+
+    // Decrease / Increase buttons for tick
+    decButton.setSize({36.0f, 36.0f});
+    decButton.setFillColor(sf::Color(40, 40, 40));
+    decButton.setOutlineColor(sf::Color(120, 120, 120));
+    decButton.setOutlineThickness(1.0f);
+    incButton.setSize({36.0f, 36.0f});
+    incButton.setFillColor(sf::Color(40, 40, 40));
+    incButton.setOutlineColor(sf::Color(120, 120, 120));
+    incButton.setOutlineThickness(1.0f);
+    if (gameFont.getInfo().family.size() > 0) {
+        decText = sf::Text(gameFont, "-", 18);
+        incText = sf::Text(gameFont, "+", 18);
+    } else {
+        decText = sf::Text(font, "-", 18);
+        incText = sf::Text(font, "+", 18);
+    }
+    decText->setFillColor(sf::Color::White);
+    incText->setFillColor(sf::Color::White);
 
     // Start and Pause buttons (dark background, white text)
     startButton.setSize({120.0f, 44.0f});
@@ -185,6 +231,9 @@ void SFMLUI::initializeGameUI() {
 
     // ensure positions are correct
     updateView();
+
+    // Provide full UI context to the input handler (game screen)
+    inputHandler.setUIContext(&window, &playButton, &exitButton, &startButton, &pauseButton, &mainMenuButton, &toricToggleButton, &decButton, &incButton, &inputBox, &gridOffsetX, &gridOffsetY, &cellSize, &gridHeight, &gridWidth);
 }
 
 void SFMLUI::updateView() {
@@ -207,36 +256,91 @@ void SFMLUI::updateView() {
         topBar.setSize({gridWidthPixels, topBarHeight});
         topBar.setPosition({gridOffsetX, 0.0f});
 
-        // start and pause buttons on the left inside the top bar
+        // start and pause buttons on the left inside the top bar; size scales with grid width
+        float btnW = std::min(140.0f, gridWidthPixels * 0.11f);
+        float btnH = std::max(28.0f, topBarHeight * 0.6f);
+        startButton.setSize({btnW, btnH});
+        pauseButton.setSize({btnW, btnH});
         startButton.setPosition({gridOffsetX + 8.0f, (topBarHeight - startButton.getSize().y) / 2.0f});
         pauseButton.setPosition({startButton.getPosition().x + startButton.getSize().x + 8.0f,
-                                 (topBarHeight - pauseButton.getSize().y) / 2.0f});
+                     (topBarHeight - pauseButton.getSize().y) / 2.0f});
+        // update text sizes to match
+        unsigned int charSize = static_cast<unsigned int>(std::max(12.0f, btnH * 0.55f));
         if (startText.has_value()) {
+            startText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, "Start", charSize);
             auto tb = startText->getLocalBounds();
+            startText->setFillColor(sf::Color::White);
             startText->setPosition({startButton.getPosition().x + startButton.getSize().x / 2.0f - tb.size.x / 2.0f,
                                     startButton.getPosition().y + startButton.getSize().y / 2.0f - tb.size.y / 2.0f});
         }
         if (pauseText.has_value()) {
+            pauseText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, "Pause", charSize);
             auto tb = pauseText->getLocalBounds();
+            pauseText->setFillColor(sf::Color::White);
             pauseText->setPosition({pauseButton.getPosition().x + pauseButton.getSize().x / 2.0f - tb.size.x / 2.0f,
                                     pauseButton.getPosition().y + pauseButton.getSize().y / 2.0f - tb.size.y / 2.0f});
         }
 
         // input box to the right of pause button (inside top bar)
+        float inputW = std::min(220.0f, gridWidthPixels * 0.18f);
+        inputBox.setSize({inputW, inputBox.getSize().y});
         inputBox.setPosition({pauseButton.getPosition().x + pauseButton.getSize().x + 12.0f,
                               (topBarHeight - inputBox.getSize().y) / 2.0f});
         if (inputText.has_value()) {
+            inputText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, std::to_string(inputValue), charSize - 2);
+            inputText->setFillColor(sf::Color::White);
             auto it = inputText->getLocalBounds();
             inputText->setPosition({inputBox.getPosition().x + 8.0f, inputBox.getPosition().y + inputBox.getSize().y / 2.0f - it.size.y / 2.0f});
         }
 
         // main menu button: right aligned inside the top bar
-        float mmw = mainMenuButton.getSize().x;
+        float mmw = std::min(140.0f, gridWidthPixels * 0.11f);
+        mainMenuButton.setSize({mmw, mainMenuButton.getSize().y});
         mainMenuButton.setPosition({gridOffsetX + gridWidthPixels - mmw - 8.0f, (topBarHeight - mainMenuButton.getSize().y) / 2.0f});
         if (mainMenuText.has_value()) {
+            mainMenuText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, "Main Menu", static_cast<unsigned int>(std::max(12.0f, btnH * 0.4f)));
+            mainMenuText->setFillColor(sf::Color::White);
             auto tb = mainMenuText->getLocalBounds();
             mainMenuText->setPosition({mainMenuButton.getPosition().x + mainMenuButton.getSize().x / 2.0f - tb.size.x / 2.0f,
                                        mainMenuButton.getPosition().y + mainMenuButton.getSize().y / 2.0f - tb.size.y / 2.0f});
+        }
+
+        // Tick display and toric toggle positions (on top bar, right of input box)
+        float controlsX = inputBox.getPosition().x + inputBox.getSize().x + 12.0f;
+        // dec/inc buttons
+        decButton.setSize({btnH, btnH});
+        incButton.setSize({btnH, btnH});
+        decButton.setPosition({controlsX, (topBarHeight - btnH) / 2.0f});
+        incButton.setPosition({decButton.getPosition().x + decButton.getSize().x + 6.0f, (topBarHeight - btnH) / 2.0f});
+        // tick text between buttons and toric
+        if (tickText.has_value()) {
+            tickText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, std::to_string(service.getTickMs()) + " ms", static_cast<unsigned int>(std::max(12.0f, btnH * 0.45f)));
+            tickText->setFillColor(sf::Color::White);
+            tickText->setPosition({incButton.getPosition().x + incButton.getSize().x + 8.0f, (topBarHeight - btnH) / 2.0f});
+        }
+        // toric toggle to the right
+        toricToggleButton.setSize({btnW * 0.9f, btnH});
+        toricToggleButton.setPosition({gridOffsetX + gridWidthPixels - toricToggleButton.getSize().x - mmw - 18.0f, (topBarHeight - btnH) / 2.0f});
+        if (toricText.has_value()) {
+            toricText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, service.isToric() ? "Toric: ON" : "Toric: OFF", static_cast<unsigned int>(std::max(12.0f, btnH * 0.45f)));
+            toricText->setFillColor(sf::Color::White);
+            auto tb = toricText->getLocalBounds();
+            toricText->setPosition({toricToggleButton.getPosition().x + toricToggleButton.getSize().x / 2.0f - tb.size.x / 2.0f,
+                                    toricToggleButton.getPosition().y + toricToggleButton.getSize().y / 2.0f - tb.size.y / 2.0f});
+        }
+        if (decText.has_value()) {
+            decText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, "-", static_cast<unsigned int>(std::max(12.0f, btnH * 0.5f)));
+            decText->setFillColor(sf::Color::White);
+            auto tb = decText->getLocalBounds();
+            decText->setPosition({decButton.getPosition().x + decButton.getSize().x / 2.0f - tb.size.x / 2.0f,
+                                  decButton.getPosition().y + decButton.getSize().y / 2.0f - tb.size.y / 2.0f});
+        }
+        if (incText.has_value()) {
+            incText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, "+", static_cast<unsigned int>(std::max(12.0f, btnH * 0.5f)));
+            incText->setFillColor(sf::Color::White);
+            auto tb = incText->getLocalBounds();
+            incText->setPosition({incButton.getPosition().x + incButton.getSize().x / 2.0f - tb.size.x / 2.0f,
+                                  incButton.getPosition().y + incButton.getSize().y / 2.0f - tb.size.y / 2.0f});
         }
         
         sf::View view;
@@ -282,9 +386,11 @@ void SFMLUI::updateView() {
                 static_cast<float>(windowSize.y) * 0.7f + 10.0f
             });
         }
+        // menu layout removed
     }
 }
 
+// menu simulation removed; restore simple home-screen drawing
 void SFMLUI::drawHomeScreen() {
     window.clear(sf::Color(26, 26, 26));
 
@@ -292,10 +398,10 @@ void SFMLUI::drawHomeScreen() {
     if (titleText.has_value()) {
         window.draw(*titleText);
     }
-    
+
     bool playHover = isMouseOver(playButton);
     bool exitHover = isMouseOver(exitButton);
-    
+
     if (playButtonText.has_value()) {
         if (playHover && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             playButtonText->setFillColor(sf::Color(0, 200, 0));
@@ -306,7 +412,7 @@ void SFMLUI::drawHomeScreen() {
         }
         window.draw(*playButtonText);
     }
-    
+
     if (exitButtonText.has_value()) {
         if (exitHover && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             exitButtonText->setFillColor(sf::Color(200, 0, 0));
@@ -317,7 +423,7 @@ void SFMLUI::drawHomeScreen() {
         }
         window.draw(*exitButtonText);
     }
-    
+
     window.display();
 }
 
@@ -328,35 +434,29 @@ void SFMLUI::handleHomeScreenEvents() {
             window.close();
             return;
         }
-        
+
         if (event->is<sf::Event::Resized>()) {
             updateView();
         }
-        
-        if (event->is<sf::Event::MouseButtonPressed>()) {
-            event->visit([this](auto&& ev) {
-                if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::MouseButtonPressed>) {
-                    if (ev.button == sf::Mouse::Button::Left) {
-                        if (isMouseOver(playButton)) {
-                            currentState = GameState::GAME_SCREEN;
-                            // initialize game UI now (only when entering game screen)
-                            initializeGameUI();
-                            updateView();
-                        }
-                        
-                        if (isMouseOver(exitButton)) {
-                            currentState = GameState::EXIT;
-                            window.close();
-                        }
-                    }
-                }
-            });
+
+        bool isGame = (currentState == GameState::GAME_SCREEN);
+        bool quitRequested = false;
+        inputHandler.handleEvent(service, window, *event, isGame, quitRequested);
+
+        if (quitRequested) {
+            currentState = GameState::EXIT;
+            window.close();
+            return;
         }
-    }
-    
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scancode::Escape)) {
-        currentState = GameState::EXIT;
-        window.close();
+
+        if (isGame && currentState != GameState::GAME_SCREEN) {
+            // switched to game screen (e.g., Play pressed)
+            currentState = GameState::GAME_SCREEN;
+            initializeGameUI();
+            updateView();
+        } else if (!isGame) {
+            currentState = GameState::HOME_SCREEN;
+        }
     }
 }
 
@@ -374,120 +474,28 @@ void SFMLUI::handleGameScreenEvents() {
             updateView();
         }
 
-        // mouse clicks
-        if (event->is<sf::Event::MouseButtonPressed>()) {
-            event->visit([this](auto&& ev) {
-                if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::MouseButtonPressed>) {
-                    if (ev.button == sf::Mouse::Button::Left) {
-                        if (isMouseOver(startButton)) {
-                            simulationRunning = true;
-                            // update visuals
-                            startButton.setFillColor(sf::Color(120, 200, 120));
-                            pauseButton.setFillColor(sf::Color(160, 80, 80));
-                        }
-                        if (isMouseOver(pauseButton)) {
-                            simulationRunning = false;
-                            startButton.setFillColor(sf::Color(80, 160, 80));
-                            pauseButton.setFillColor(sf::Color(200, 120, 120));
-                        }
-                        if (isMouseOver(mainMenuButton)) {
-                            // go back to the home screen
-                            currentState = GameState::HOME_SCREEN;
-                            // reset view and UI layout for home screen
-                            updateView();
-                        }
-
-                        if (isMouseOver(inputBox)) {
-                            inputActive = true;
-                        } else {
-                            inputActive = false;
-                        }
-
-                        // If click is within grid area, toggle that cell
-                        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                        sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
-                        Grid &g = uiGrids[this];
-                        int rows = g.getR();
-                        int cols = g.getC();
-                        float gridWidthPixels = cellSize * cols;
-                        float gridHeightPixels = cellSize * rows;
-                        if (worldPos.x >= gridOffsetX && worldPos.x < gridOffsetX + gridWidthPixels &&
-                            worldPos.y >= gridOffsetY && worldPos.y < gridOffsetY + gridHeightPixels) {
-                            int col = static_cast<int>((worldPos.x - gridOffsetX) / cellSize);
-                            int row = static_cast<int>((worldPos.y - gridOffsetY) / cellSize);
-                            if (row >= 0 && row < rows && col >= 0 && col < cols) {
-                                bool current = g.getCell(row, col);
-                                g.setCell(row, col, !current);
-                            }
-                        }
-                    }
-                }
-            });
+        // Delegate input handling to SFMLInput (centralized)
+        bool isGameScreenActive = (currentState == GameState::GAME_SCREEN);
+        bool quitRequested = false;
+        inputHandler.handleEvent(service, window, *event, isGameScreenActive, quitRequested);
+        if (quitRequested) {
+            currentState = GameState::EXIT;
+            window.close();
+            return;
         }
-
-        // Text input (Unicode-aware): use TextEntered so users can type numbers
-        if (event->is<sf::Event::TextEntered>()) {
-            event->visit([this](auto&& ev) {
-                if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::TextEntered>) {
-                    if (!inputActive) return;
-                    uint32_t unicode = ev.unicode;
-                    // accept ASCII digits only for now
-                    if (unicode >= '0' && unicode <= '9') {
-                        std::string s = inputText.has_value() ? inputText->getString().toAnsiString() : std::to_string(inputValue);
-                        s.push_back(static_cast<char>(unicode));
-                        try { inputValue = std::stoi(s); } catch(...) { }
-                        if (inputText.has_value()) inputText->setString(s);
-                    }
-                }
-            });
-        }
-
-        // key presses (e.g., Escape to home, Backspace, Enter)
-        if (event->is<sf::Event::KeyPressed>()) {
-            event->visit([this](auto&& ev) {
-                if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::KeyPressed>) {
-                    // Escape -> back to home
-                    if (ev.scancode == sf::Keyboard::Scancode::Escape) {
-                        currentState = GameState::HOME_SCREEN;
-                        updateView();
-                        return;
-                    }
-
-                    // Space -> toggle simulation and update visuals
-                    if (ev.scancode == sf::Keyboard::Scancode::Space) {
-                        simulationRunning = !simulationRunning;
-                        if (simulationRunning) {
-                            startButton.setFillColor(sf::Color(120, 200, 120));
-                            pauseButton.setFillColor(sf::Color(160, 80, 80));
-                        } else {
-                            startButton.setFillColor(sf::Color(80, 160, 80));
-                            pauseButton.setFillColor(sf::Color(200, 120, 120));
-                        }
-                        return;
-                    }
-
-                    // Backspace / Enter handling when input active
-                    if (inputActive) {
-                        if (ev.scancode == sf::Keyboard::Scancode::Backspace) {
-                            std::string s = inputText.has_value() ? inputText->getString().toAnsiString() : std::to_string(inputValue);
-                            if (!s.empty()) s.pop_back();
-                            try { inputValue = s.empty() ? 0 : std::stoi(s); } catch(...) { inputValue = 0; }
-                            if (inputText.has_value()) inputText->setString(s);
-                        } else if (ev.scancode == sf::Keyboard::Scancode::Enter) {
-                            inputActive = false;
-                        }
-                    }
-                }
-            });
+        if (!isGameScreenActive) currentState = GameState::HOME_SCREEN;
+        
+        // Update input text display
+        if (inputText.has_value()) {
+            inputText->setString(std::to_string(inputHandler.getInputValue()));
         }
     }
 }
 
-void SFMLUI::displayGrid(const std::vector<std::vector<int>>& grid) {
-    if (!window.isOpen() || currentState != GameState::GAME_SCREEN) return;
-
+void SFMLUI::drawGameScreen() {
     window.clear(sf::Color(26, 26, 26));
-    // Draw top bar and controls (if initialized)
+    
+    // Draw top bar and controls
     window.draw(topBar);
     window.draw(startButton);
     window.draw(pauseButton);
@@ -495,31 +503,61 @@ void SFMLUI::displayGrid(const std::vector<std::vector<int>>& grid) {
     if (pauseText.has_value()) window.draw(*pauseText);
     window.draw(inputBox);
     if (inputText.has_value()) window.draw(*inputText);
+    // draw dec/inc and tick text
+    window.draw(decButton);
+    window.draw(incButton);
+    if (decText.has_value()) window.draw(*decText);
+    if (incText.has_value()) window.draw(*incText);
+    if (tickText.has_value()) window.draw(*tickText);
+    // toric toggle
     window.draw(mainMenuButton);
     if (mainMenuText.has_value()) window.draw(*mainMenuText);
+    window.draw(toricToggleButton);
+    if (toricText.has_value()) window.draw(*toricText);
 
-    // Draw grid below the top bar
-        Grid &g = uiGrids[this];
-        int rows = g.getR();
-        int cols = g.getC();
+    // Draw grid from GameService
+    syncGridWithService();
+    int rows = service.getRows();
+    int cols = service.getCols();
 
-        for (int r = 0; r < rows; ++r) {
-            for (int c = 0; c < cols; ++c) {
-                sf::RectangleShape cell({cellSize - 1.0f, cellSize - 1.0f});
-                cell.setPosition({gridOffsetX + c * cellSize, gridOffsetY + r * cellSize});
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            sf::RectangleShape cell({cellSize - 1.0f, cellSize - 1.0f});
+            cell.setPosition({gridOffsetX + c * cellSize, gridOffsetY + r * cellSize});
 
-                if (g.getCell(r, c)) {
-                    cell.setFillColor(sf::Color::White);
-                } else {
-                    cell.setFillColor(sf::Color::Black);
-                }
-
-                window.draw(cell);
+            if (service.getCell(r, c)) {
+                cell.setFillColor(sf::Color::White);
+            } else {
+                cell.setFillColor(sf::Color::Black);
             }
+
+            window.draw(cell);
         }
+    }
 
     window.display();
 }
+
+
+
+void SFMLUI::render() {
+    switch (currentState) {
+        case GameState::HOME_SCREEN:
+            handleHomeScreenEvents();
+            drawHomeScreen();
+            break;
+        case GameState::GAME_SCREEN:
+            handleGameScreenEvents();
+            drawGameScreen();
+            break;
+        case GameState::EXIT:
+            window.close();
+            break;
+    }
+}
+
+
+
 
 bool SFMLUI::isWindowOpen() const {
     return window.isOpen() && currentState != GameState::EXIT;
@@ -528,18 +566,7 @@ bool SFMLUI::isWindowOpen() const {
 bool SFMLUI::handleEvents() {
     if (!window.isOpen()) return false;
     
-    switch (currentState) {
-        case GameState::HOME_SCREEN:
-            handleHomeScreenEvents();
-            drawHomeScreen();
-            break;
-        case GameState::GAME_SCREEN:
-            handleGameScreenEvents();
-            break;
-        case GameState::EXIT:
-            window.close();
-            return false;
-    }
+    render();
     
     return true;
 }
