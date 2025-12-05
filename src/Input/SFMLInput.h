@@ -53,4 +53,8 @@ private:
     const float* cellSizePtr = nullptr;
     const int* gridRows = nullptr;
     const int* gridCols = nullptr;
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 7148f0781f908da53d947462047cfc2436034aad
