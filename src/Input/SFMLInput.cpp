@@ -194,9 +194,4 @@ void SFMLInput::setInputValue(int val) { inputValue = val; }
 void SFMLInput::clearInputValue() { inputValue = 0; }
 
 bool SFMLInput::isInputActive() const { return inputActive; }
-<<<<<<< HEAD
 void SFMLInput::setInputActive(bool active) { inputActive = active; }
-
-=======
-void SFMLInput::setInputActive(bool active) { inputActive = active; }
->>>>>>> 7148f0781f908da53d947462047cfc2436034aad

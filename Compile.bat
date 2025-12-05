@@ -12,35 +12,9 @@ if not exist "bin" (
 echo.
 
 REM ===========================================
-REM 1. VERSION CONSOLE
+REM Combined build (Console + SFML in one executable)
 REM ===========================================
-echo [1/2] Compilation version CONSOLE...
-
-g++ -std=c++17 -Isrc ^
-src/main.cpp ^
-src/Core/Cell.cpp ^
-src/Core/Grid.cpp ^
-src/Core/GameRules.cpp ^
-src/Services/GameService.cpp ^
-src/UI/ConsoleUI.cpp ^
-src/Input/ConsoleInput.cpp ^
-src/Services/FileService.cpp ^
--o bin/GameOfLifeConsole.exe
-
-if %errorlevel% equ 0 (
-    echo [OK] Console version: bin/GameOfLifeConsole.exe
-) else (
-    echo [ERREUR] Compilation console echouee
-    pause
-    exit /b 1
-)
-
-echo.
-
-REM ===========================================
-REM 2. VERSION SFML
-REM ===========================================
-echo [2/2] Compilation version SFML...
+echo [1/1] Compilation combined executable (Console + SFML)...
 
 set "SFML_PATH=C:\Users\NITRO\Documents\SFML Download\SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit\SFML-3.0.2"
 
@@ -66,7 +40,7 @@ src/Input/ConsoleInput.cpp ^
 src/Services/FileService.cpp ^
 src/UI/SFMLUI.cpp ^
 src/Input/SFMLInput.cpp ^
--o bin/GameOfLifeSFML.exe ^
+-o bin/GameOfLife.exe ^
 -L"%SFML_PATH%\lib" ^
 -lsfml-graphics ^
 -lsfml-window ^
@@ -78,7 +52,7 @@ src/Input/SFMLInput.cpp ^
 -lvorbisfile
 
 if %errorlevel% equ 0 (
-    echo [OK] SFML version: bin/GameOfLifeSFML.exe
+    echo [OK] SFML version: bin/GameOfLife.exe
     
     echo.
     echo Copie des DLLs SFML...
@@ -120,7 +94,7 @@ if %errorlevel% equ 0 (
     src/Services/FileService.cpp ^
     src/UI/SFMLUI.cpp ^
     src/Input/SFMLInput.cpp ^
-    -o bin/GameOfLifeSFML.exe ^
+    -o bin/GameOfLife.exe ^
     "%SFML_PATH%\lib\libsfml-graphics.a" ^
     "%SFML_PATH%\lib\libsfml-window.a" ^
     "%SFML_PATH%\lib\libsfml-system.a" ^
