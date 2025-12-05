@@ -3,6 +3,11 @@
 #include <iostream>
 #include <limits>
 
+#include "UI/SFMLUI.h"
+#include <vector>
+#include <thread>
+#include <chrono>
+
 
 int main() {
    int choix;
@@ -33,7 +38,33 @@ int main() {
     }
     else if (choix==2)
     {
-        /* code */
+        #ifdef _WIN32
+        _putenv("SFML_OPENGL_ES=1");
+        #endif
+
+        GameService* service = new GameService();
+        service->setGridSize(GridSize::NORMAL);
+        SFMLUI ui(*service);
+
+        if (!ui.isWindowOpen()) {
+            delete service;
+            return -1;
+        }
+
+        while (ui.isWindowOpen()) {
+            if (!ui.handleEvents()) {
+                break;
+            }
+            
+            // Step the simulation
+            if (service->isRunning()) {
+                service->step();
+            }
+            
+            std::this_thread::sleep_for(std::chrono::milliseconds(service->getTickMs()));
+        }
+        
+        delete service;
     }
     
                                                          

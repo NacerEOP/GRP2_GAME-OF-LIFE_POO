@@ -64,6 +64,9 @@ public:
 	// toric behavior control
 	void setToric(bool t) { grid.setToric(t); buffer.setToric(t); }
 	bool isToric() const { return grid.isToric(); }
+	// obstacle access via service (for SFML interaction)
+	void setObstacle(int r, int c, bool obs) { grid.setObstacle(r, c, obs); buffer.setObstacle(r, c, obs); }
+	bool isObstacle(int r, int c) const { return grid.isObstacle(r, c); }
 
 private:
 	Grid grid;

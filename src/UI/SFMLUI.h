@@ -3,6 +3,10 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include "../Input/SFMLInput.h"
+#include <optional>
+#include "../Core/Grid.h"
+#include <chrono>
 
 enum class GameState {
     HOME_SCREEN,
@@ -10,8 +14,14 @@ enum class GameState {
     EXIT
 };
 
+// Forward declaration
+class GameService;
+
 class SFMLUI {
 private:
+    GameService& service;  // Reference to the service hub
+    SFMLInput inputHandler;  // Delegates input to GameService
+    
     int gridWidth;
     int gridHeight;
     int baseCellSize;
@@ -40,9 +50,17 @@ private:
     std::optional<sf::Text> mainMenuText;
     sf::RectangleShape inputBox;
     std::optional<sf::Text> inputText;
-    bool simulationRunning = false;
     int inputValue = 0;
     bool inputActive = false;
+    // Top bar extras: tick display and toric toggle, and inc/dec buttons
+    std::optional<sf::Text> tickText;
+    sf::RectangleShape toricToggleButton;
+    std::optional<sf::Text> toricText;
+    sf::RectangleShape decButton;
+    sf::RectangleShape incButton;
+    std::optional<sf::Text> decText;
+    std::optional<sf::Text> incText;
+    // (menu simulation removed — main menu uses static UI elements only)
 
     void updateView();
     void initializeHomeScreen();
@@ -50,15 +68,18 @@ private:
     void handleHomeScreenEvents();
     void drawHomeScreen();
     void handleGameScreenEvents();
+    void drawGameScreen();  // Render game screen from GameService data
     bool isMouseOver(const sf::RectangleShape& button);
+    void syncGridWithService();  // Pull grid dimensions/data from GameService
+    // menu simulation removed
 
 public:
-    SFMLUI(int width, int height, int cellSize);
+    SFMLUI(GameService& service);
     ~SFMLUI() = default;
 
-    void displayGrid(const std::vector<std::vector<int>>& grid);
     bool isWindowOpen() const;
     bool handleEvents();
+    void render();  // Render current state based on GameService
     GameState getCurrentState() const { return currentState; }
 };
 
