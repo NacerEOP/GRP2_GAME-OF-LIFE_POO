@@ -7,6 +7,7 @@
 #include <optional>
 #include "../Core/Grid.h"
 #include <chrono>
+#include "../Services/SoundService.h"
 
 enum class GameState {
     HOME_SCREEN,
@@ -21,6 +22,7 @@ class SFMLUI {
 private:
     GameService& service;  // Reference to the service hub
     SFMLInput inputHandler;  // Delegates input to GameService
+    SoundService soundService;
     
     int gridWidth;
     int gridHeight;

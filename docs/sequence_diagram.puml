@@ -1,0 +1,8 @@
+@startuml
+actor User
+User -> SFMLUI: Click Play
+SFMLUI -> GameService: start()
+loop each tick
+    SFMLUI -> GameService: step()
+end
+@enduml

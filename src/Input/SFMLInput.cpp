@@ -1,5 +1,6 @@
 #include "SFMLInput.h"
 #include "../Services/GameService.h"
+#include "../Services/SoundService.h"
 #include <iostream>
 #include <optional>
 
@@ -43,8 +44,10 @@ bool SFMLInput::handleEvent(GameService& service, sf::RenderWindow& window, cons
                     // Toggle start/pause
                     if (service.isRunning()) {
                         service.pause();
+                        if (soundService) soundService->playSimStartStop();
                     } else {
                         service.start();
+                        if (soundService) soundService->playSimStartStop();
                     }
                     return;
                 }
@@ -65,6 +68,7 @@ bool SFMLInput::handleEvent(GameService& service, sf::RenderWindow& window, cons
                 if (ev.scancode >= sf::Keyboard::Scan::Num0 && ev.scancode <= sf::Keyboard::Scan::Num9) {
                     int slot = static_cast<int>(ev.scancode) - static_cast<int>(sf::Keyboard::Scan::Num0);
                     service.loadPreset(slot);
+                    if (soundService) soundService->playClick();
                     return;
                 }
                 
@@ -132,16 +136,16 @@ bool SFMLInput::handleEvent(GameService& service, sf::RenderWindow& window, cons
             if constexpr (std::is_same_v<std::decay_t<decltype(ev)>, sf::Event::MouseButtonPressed>) {
                 if (ev.button == sf::Mouse::Button::Left) {
                     // Home screen: play/quit
-                    if (isMouseOverRect(playButton)) { isGameScreenActive = true; return; }
-                    if (isMouseOverRect(exitButton)) { quitRequested = true; return; }
+                    if (isMouseOverRect(playButton)) { if (soundService) soundService->playClick(); isGameScreenActive = true; return; }
+                    if (isMouseOverRect(exitButton)) { if (soundService) soundService->playClick(); quitRequested = true; return; }
 
                     // Game-screen controls
-                    if (isMouseOverRect(startButton)) { service.start(); return; }
-                    if (isMouseOverRect(pauseButton)) { service.pause(); return; }
-                    if (isMouseOverRect(mainMenuButton)) { isGameScreenActive = false; return; }
-                    if (isMouseOverRect(toricButton)) { service.setToric(!service.isToric()); return; }
-                    if (isMouseOverRect(decButton)) { int ms = service.getTickMs(); service.setTickMs(std::min(2000, ms + 50)); return; }
-                    if (isMouseOverRect(incButton)) { int ms = service.getTickMs(); service.setTickMs(std::max(10, ms - 50)); return; }
+                    if (isMouseOverRect(startButton)) { service.start(); if (soundService) soundService->playSimStartStop(); if (soundService) soundService->playClick(); return; }
+                    if (isMouseOverRect(pauseButton)) { service.pause(); if (soundService) soundService->playSimStartStop(); if (soundService) soundService->playClick(); return; }
+                    if (isMouseOverRect(mainMenuButton)) { if (soundService) soundService->playClick(); isGameScreenActive = false; return; }
+                    if (isMouseOverRect(toricButton)) { service.setToric(!service.isToric()); if (soundService) soundService->playClick(); return; }
+                    if (isMouseOverRect(decButton)) { int ms = service.getTickMs(); service.setTickMs(std::min(2000, ms + 50)); if (soundService) soundService->playClick(); return; }
+                    if (isMouseOverRect(incButton)) { int ms = service.getTickMs(); service.setTickMs(std::max(10, ms - 50)); if (soundService) soundService->playClick(); return; }
 
                     if (isMouseOverRect(inputBox)) { setInputActive(true); return; } else { setInputActive(false); }
 
@@ -159,6 +163,7 @@ bool SFMLInput::handleEvent(GameService& service, sf::RenderWindow& window, cons
                             if (row >= 0 && row < rows && col >= 0 && col < cols) {
                                 bool current = service.getCell(row, col);
                                 service.setCell(row, col, !current);
+                                if (soundService) soundService->playClick();
                             }
                         }
                     }
@@ -178,12 +183,48 @@ bool SFMLInput::handleEvent(GameService& service, sf::RenderWindow& window, cons
                                 bool obs = service.isObstacle(row, col);
                                 service.setObstacle(row, col, !obs);
                                 if (!obs) service.setCell(row, col, false);
+                                if (soundService) soundService->playClick();
                             }
                         }
                     }
                 }
             }
         });
+    }
+
+    // Mouse moved -> hover detection for buttons (play hover once per entry)
+    if (event.is<sf::Event::MouseMoved>()) {
+        bool overPlay = isMouseOverRect(playButton);
+        bool overExit = isMouseOverRect(exitButton);
+        bool overStart = isMouseOverRect(startButton);
+        bool overPause = isMouseOverRect(pauseButton);
+        bool overMain = isMouseOverRect(mainMenuButton);
+        bool overToric = isMouseOverRect(toricButton);
+        bool overDec = isMouseOverRect(decButton);
+        bool overInc = isMouseOverRect(incButton);
+        bool overInput = isMouseOverRect(inputBox);
+
+        if (soundService) {
+            if (overPlay && !wasOverPlay) soundService->playHover();
+            if (overExit && !wasOverExit) soundService->playHover();
+            if (overStart && !wasOverStart) soundService->playHover();
+            if (overPause && !wasOverPause) soundService->playHover();
+            if (overMain && !wasOverMainMenu) soundService->playHover();
+            if (overToric && !wasOverToric) soundService->playHover();
+            if (overDec && !wasOverDec) soundService->playHover();
+            if (overInc && !wasOverInc) soundService->playHover();
+            if (overInput && !wasOverInputBox) soundService->playHover();
+        }
+
+        wasOverPlay = overPlay;
+        wasOverExit = overExit;
+        wasOverStart = overStart;
+        wasOverPause = overPause;
+        wasOverMainMenu = overMain;
+        wasOverToric = overToric;
+        wasOverDec = overDec;
+        wasOverInc = overInc;
+        wasOverInputBox = overInput;
     }
 
     return true;

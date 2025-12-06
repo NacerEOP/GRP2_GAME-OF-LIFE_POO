@@ -35,6 +35,7 @@ src/Core/Cell.cpp ^
 src/Core/Grid.cpp ^
 src/Core/GameRules.cpp ^
 src/Services/GameService.cpp ^
+src/Services/SoundService.cpp ^
 src/UI/ConsoleUI.cpp ^
 src/Input/ConsoleInput.cpp ^
 src/Services/FileService.cpp ^
@@ -45,6 +46,7 @@ src/Input/SFMLInput.cpp ^
 -lsfml-graphics ^
 -lsfml-window ^
 -lsfml-system ^
+-lsfml-audio ^
 -lfreetype ^
 -logg ^
 -lvorbis ^
@@ -89,6 +91,7 @@ if %errorlevel% equ 0 (
     src/Core/Grid.cpp ^
     src/Core/GameRules.cpp ^
     src/Services/GameService.cpp ^
+    src/Services/SoundService.cpp ^
     src/UI/ConsoleUI.cpp ^
     src/Input/ConsoleInput.cpp ^
     src/Services/FileService.cpp ^
@@ -98,6 +101,7 @@ if %errorlevel% equ 0 (
     "%SFML_PATH%\lib\libsfml-graphics.a" ^
     "%SFML_PATH%\lib\libsfml-window.a" ^
     "%SFML_PATH%\lib\libsfml-system.a" ^
+    "%SFML_PATH%\lib\libsfml-audio.a" ^
     "%SFML_PATH%\lib\libsfml-main.a" ^
     "%SFML_PATH%\lib\libfreetype.a" ^
     "%SFML_PATH%\lib\libogg.a" ^
@@ -108,6 +112,29 @@ if %errorlevel% equ 0 (
     if %errorlevel% equ 0 (
         echo [OK] Compilation avec bibliotheques statiques reussie!
     )
+)
+
+echo.
+echo Building unit tests...
+REM Ensure Catch2 header is available for tests
+echo Ensuring Catch2 header `tests\catch.hpp` is present...
+powershell -Command "if(-not (Test-Path 'tests\\catch.hpp')) { Write-Host 'Downloading catch.hpp...'; Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/catchorg/Catch2/v2.13.10/single_include/catch2/catch.hpp' -OutFile 'tests\\catch.hpp' -UseBasicParsing } else { Write-Host 'catch.hpp already present' }"
+
+g++ -std=c++17 -Isrc -Itests tests/test_game.cpp src/Core/Cell.cpp src/Core/Grid.cpp src/Core/GameRules.cpp src/Services/GameService.cpp src/Services/FileService.cpp -o bin/test_game.exe
+if %errorlevel% equ 0 (
+    echo [OK] Unit tests built: bin/test_game.exe
+) else (
+    echo [ERREUR] Unit test build failed
+)
+
+REM Run tests and capture output to a log file
+echo.
+echo Running unit tests and saving output to bin\test_results.txt ...
+cmd /c "bin\test_game.exe > bin\test_results.txt 2>&1"
+if exist bin\test_results.txt (
+    echo Test output saved to bin\test_results.txt
+) else (
+    echo Failed to run tests or produce log file.
 )
 
 echo.

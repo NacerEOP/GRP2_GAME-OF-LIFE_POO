@@ -1,0 +1,8 @@
+Running 5 tests:
+ - blinker... OK
+ - block_stable... OK
+ - toric_wrap... OK
+ - obstacle_preserved... OK
+ - file_io... OK
+
+Summary: 5 / 5 tests passed.

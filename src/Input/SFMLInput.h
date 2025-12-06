@@ -53,4 +53,18 @@ private:
     const float* cellSizePtr = nullptr;
     const int* gridRows = nullptr;
     const int* gridCols = nullptr;
+    // Optional sound service (set by SFMLUI)
+    class SoundService* soundService = nullptr;
+    // hover state tracking to only play hover once per entry
+    bool wasOverPlay = false;
+    bool wasOverExit = false;
+    bool wasOverStart = false;
+    bool wasOverPause = false;
+    bool wasOverMainMenu = false;
+    bool wasOverToric = false;
+    bool wasOverDec = false;
+    bool wasOverInc = false;
+    bool wasOverInputBox = false;
+public:
+    void setSoundService(class SoundService* s) { soundService = s; }
 };

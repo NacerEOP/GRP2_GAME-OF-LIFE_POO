@@ -103,6 +103,8 @@ void SFMLUI::initializeHomeScreen() {
 
     // Provide input handler with UI context for home screen buttons
     inputHandler.setUIContext(&window, &playButton, &exitButton, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+    // provide sound service to input handler
+    inputHandler.setSoundService(&soundService);
 
     // Do NOT initialize game UI here — initialize it when entering GAME_SCREEN
 }
@@ -234,6 +236,8 @@ void SFMLUI::initializeGameUI() {
 
     // Provide full UI context to the input handler (game screen)
     inputHandler.setUIContext(&window, &playButton, &exitButton, &startButton, &pauseButton, &mainMenuButton, &toricToggleButton, &decButton, &incButton, &inputBox, &gridOffsetX, &gridOffsetY, &cellSize, &gridHeight, &gridWidth);
+    // provide sound service to input handler
+    inputHandler.setSoundService(&soundService);
 }
 
 void SFMLUI::updateView() {
@@ -455,7 +459,10 @@ void SFMLUI::handleHomeScreenEvents() {
             initializeGameUI();
             updateView();
         } else if (!isGame) {
+            // ensure home screen layout is recomputed (fix centering after
+            // returning from game screen where window may have been resized)
             currentState = GameState::HOME_SCREEN;
+            updateView();
         }
     }
 }
@@ -483,8 +490,13 @@ void SFMLUI::handleGameScreenEvents() {
             window.close();
             return;
         }
-        if (!isGameScreenActive) currentState = GameState::HOME_SCREEN;
-        
+        if (!isGameScreenActive) {
+            currentState = GameState::HOME_SCREEN;
+            // recompute positions for the home screen immediately so texts/buttons
+            // are centered without needing another resize
+            updateView();
+        }
+
         // Update input text display
         if (inputText.has_value()) {
             inputText->setString(std::to_string(inputHandler.getInputValue()));

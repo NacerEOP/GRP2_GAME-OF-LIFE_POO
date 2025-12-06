@@ -16,7 +16,7 @@ int main() {
     
     // Boucle jusqu'à obtenir une entrée valide
     while (!(std::cin >> choix) || (choix != 1 && choix != 2)) {
-        std::cout << "Entrée invalide! Veuillez entrer 1 ou 2: ";
+        std::cout << "Entree invalide! Veuillez entrer 1 ou 2: ";
         
         // Réinitialiser l'état de cin
         std::cin.clear();

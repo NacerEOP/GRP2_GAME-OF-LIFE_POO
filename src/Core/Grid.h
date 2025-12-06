@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <memory>
+#include "Cell.h"
 
 // Énumération pour les trois tailles de grille prédéfinies
 enum class GridSize {
@@ -15,9 +17,7 @@ private:
 
     int rows;
     int cols;
-    std::vector<std::vector<bool>> cells;
-    // obstacle mask: true means this cell is an obstacle (static)
-    std::vector<std::vector<bool>> obstacles;
+    std::vector<std::vector<std::unique_ptr<Cell>>> cells;
     // toric (wrap-around) behavior
     bool toric = false;
 
@@ -32,6 +32,9 @@ public:
     // obstacle accessors
     void setObstacle(int x, int y, bool obs);
     bool isObstacle(int x, int y) const;
+
+    // deep equality check for stabilization detection
+    bool equals(const Grid &other) const;
 
 public:
     
@@ -60,6 +63,10 @@ public:
 
     bool getCell(int x, int y) const;       // retourne l'état d'une cellule
     void setCell(int x, int y, bool state); // modifie l'état d'une cellule
+    
+    // copy semantics (deep copy)
+    Grid(const Grid &other);
+    Grid& operator=(const Grid &other);
     void print() const;                     // affichage console pour test
 
 };

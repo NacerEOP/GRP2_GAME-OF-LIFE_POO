@@ -1,0 +1,8 @@
+@startuml
+start
+:Load initial grid;
+:While running and not stable;
+:Compute next state;
+:Update grid;
+stop
+@enduml

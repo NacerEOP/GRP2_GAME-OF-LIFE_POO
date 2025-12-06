@@ -1,0 +1,81 @@
+[DEBUT] clignotant
+Clignotant - etape 1 (attendu vs obtenu):
+EXPECTED:
+00000
+00100
+00100
+00100
+00000
+ACTUAL:
+00000
+00100
+00100
+00100
+00000
+Clignotant - etape 2 (attendu vs obtenu):
+EXPECTED:
+00000
+00000
+01110
+00000
+00000
+ACTUAL:
+00000
+00000
+01110
+00000
+00000
+[FIN] clignotant (3 ms)
+[DEBUT] bloc_stable
+Bloc stable (attendu vs obtenu):
+EXPECTED:
+0000
+0110
+0110
+0000
+ACTUAL:
+0000
+0110
+0110
+0000
+[FIN] bloc_stable (1 ms)
+[DEBUT] toric_wrap
+Toric wrap (attendu vs obtenu):
+EXPECTED:
+000
+000
+001
+ACTUAL:
+000
+000
+001
+[FIN] toric_wrap (0 ms)
+[DEBUT] obstacle_preserved
+Obstacle preserved (attendu vs obtenu):
+EXPECTED:
+00000
+00100
+00A00
+00000
+00000
+ACTUAL:
+00000
+00100
+00A00
+00000
+00000
+[FIN] obstacle_preserved (1 ms)
+[DEBUT] entree_sortie_fichier
+File IO - attendu vs obtenu:
+EXPECTED:
+101
+0A0
+100
+ACTUAL:
+101
+0A0
+100
+[FIN] entree_sortie_fichier (2 ms)
+===============================================================================
+All tests passed (10 assertions in 5 test cases)
+
