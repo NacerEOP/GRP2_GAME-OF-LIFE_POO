@@ -1,0 +1,142 @@
+%% Mermaid diagram and explanations for GRP2_GAME-OF-LIFE_POO
+%% Save this content into a mermaid renderer (VS Code Mermaid Preview, mermaid.live, etc.)
+
+%% Diagram
+graph TB
+  subgraph Root ["GRP2_GAME-OF-LIFE_POO (root)"]
+    direction TB
+    bin_dir["bin/"]
+    docs_dir["docs/"]
+    resources_dir["resources/"]
+    src_dir["src/"]
+    tests_dir["tests/"]
+    input_dir["Input/"]
+    output_dir["Output/"]
+    misc_files["Misc files"]
+  end
+
+  %% bin
+  subgraph bin ["bin/"]
+    B1["test_results.txt"]
+  end
+  bin_dir --> B1
+
+  %% docs
+  subgraph docs ["docs/"]
+    D1["activity_diagram.puml"]
+    D2["class_diagram.puml"]
+    D3["sequence_diagram.puml"]
+  end
+  docs_dir --> D1
+  docs_dir --> D2
+  docs_dir --> D3
+
+  %% resources
+  subgraph resources ["resources/"]
+    R_fonts["fonts/"]
+    R_sounds["Sounds/"]
+  end
+  resources_dir --> R_fonts
+  resources_dir --> R_sounds
+
+  %% src and subfolders
+  subgraph src ["src/"]
+    S_main["main.cpp"]
+    S_mainTest["mainSFLMTEST.cpp"]
+    subgraph Core ["Core/"]
+      C_CellH["Cell.h"]
+      C_CellCPP["Cell.cpp"]
+      C_GridH["Grid.h"]
+      C_GridCPP["Grid.cpp"]
+      C_GameRulesH["GameRules.h"]
+      C_GameRulesCPP["GameRules.cpp"]
+    end
+    subgraph InputSrc ["Input/"]
+      I_ConsoleH["ConsoleInput.h"]
+      I_ConsoleCPP["ConsoleInput.cpp"]
+      I_SFMLH["SFMLInput.h"]
+      I_SFMLCPP["SFMLInput.cpp"]
+    end
+    subgraph Services ["Services/"]
+      S_FileServiceH["FileService.h"]
+      S_FileServiceCPP["FileService.cpp"]
+      S_GameServiceH["GameService.h"]
+      S_GameServiceCPP["GameService.cpp"]
+      S_SoundServiceH["SoundService.h"]
+      S_SoundServiceCPP["SoundService.cpp"]
+    end
+    subgraph UI ["UI/"]
+      U_ConsoleUIH["ConsoleUI.h"]
+      U_ConsoleUICPP["ConsoleUI.cpp"]
+      U_SFMLUIH["SFMLUI.h"]
+      U_SFMLUICPP["SFMLUI.cpp"]
+    end
+  end
+  src_dir --> S_main
+  src_dir --> S_mainTest
+  src_dir --> Core
+  src_dir --> InputSrc
+  src_dir --> Services
+  src_dir --> UI
+
+  %% tests
+  subgraph tests ["tests/"]
+    T_catch["catch.hpp"]
+    T_sample["sample_input.txt"]
+    T_testgame["test_game.cpp"]
+  end
+  tests_dir --> T_catch
+  tests_dir --> T_sample
+  tests_dir --> T_testgame
+
+  %% Input/Output top-level folders
+  subgraph InputTop ["Input/"]
+    IN1["Test.txt"]
+  end
+  input_dir --> IN1
+
+  subgraph OutputTop ["Output/"]
+    O1["Test_out-1.txt"]
+    O2["Test_out-2.txt"]
+    O3["Test_out-3.txt"]
+    O4["Test_out-4.txt"]
+    O5["Test_out-5.txt"]
+    O6["Test_out-6.txt"]
+    O7["Test_out-7.txt"]
+  end
+  output_dir --> O1
+  output_dir --> O2
+  output_dir --> O3
+  output_dir --> O4
+  output_dir --> O5
+  output_dir --> O6
+  output_dir --> O7
+
+  %% miscellaneous top-level files
+  subgraph Misc ["Top-level files"]
+    M_LICENSE["LICENSE"]
+    M_README["README.md"]
+    M_CompileBat["Compile.bat"]
+    M_compileErr["compile_errors.txt"]
+    M_compileSFML["compile_sfml_log.txt"]
+    M_testOutput["test_output.txt"]
+  end
+  misc_files --> M_LICENSE
+  misc_files --> M_README
+  misc_files --> M_CompileBat
+  misc_files --> M_compileErr
+  misc_files --> M_compileSFML
+  misc_files --> M_testOutput
+
+%% Explanations (as comments for clarity)
+%% - `src/`: Main C++ source. Subfolders group core logic (Cell, Grid, GameRules), input adapters (Console/SFML), services (file/game/sound), and UI implementations.
+%% - `tests/`: Unit/integration tests and test helpers (`catch.hpp` is the test framework header).
+%% - `bin/`: Compiled artifacts and test results.
+%% - `docs/`: UML/diagrams describing architecture and flows.
+%% - `resources/`: Assets like fonts and sounds used by the SFML UI.
+%% - `Input/` and `Output/` (top-level): Example input files and generated output snapshots used for testing/IO examples.
+%% - Top-level files: build scripts (`Compile.bat`), logs, README and license.
+
+%% Notes for usage:
+%% - Paste the mermaid block above into a mermaid renderer (e.g., VS Code "Markdown Preview Mermaid Support" or mermaid.live).
+%% - You can simplify or expand subgraphs to show more/less detail depending on audience.

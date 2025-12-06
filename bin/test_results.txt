@@ -49,7 +49,7 @@ ACTUAL:
 000
 000
 001
-[FIN] toric_wrap (0 ms)
+[FIN] toric_wrap (1 ms)
 [DEBUT] obstacle_preserved
 Obstacle preserved (attendu vs obtenu):
 EXPECTED:
@@ -75,7 +75,7 @@ ACTUAL:
 101
 0A0
 100
-[FIN] entree_sortie_fichier (2 ms)
+[FIN] entree_sortie_fichier (17 ms)
 ===============================================================================
 All tests passed (10 assertions in 5 test cases)
 
