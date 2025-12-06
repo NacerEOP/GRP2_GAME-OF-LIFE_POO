@@ -164,9 +164,4 @@ Le projet inclut un `SoundService` qui tente de charger `resources/sounds/Click.
 
 ---
 
-Si vous voulez, je peux :
-- générer un `tests/README.md` expliquant en détail comment écrire un test et donnant un exemple prêt à coller ;
-- ajouter un workflow GitHub Actions YAML pour compiler et exécuter les tests automatiquement ;
-- produire des diagrammes PlantUML basés sur la structure du code (prêts à exporter en PNG/SVG).
 
-Bonne continuation !
