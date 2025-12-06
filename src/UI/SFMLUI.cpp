@@ -159,9 +159,9 @@ void SFMLUI::initializeGameUI() {
     toricToggleButton.setOutlineColor(sf::Color(120, 120, 120));
     toricToggleButton.setOutlineThickness(1.0f);
     if (gameFont.getInfo().family.size() > 0) {
-        toricText = sf::Text(gameFont, service.isToric() ? "Toric: ON" : "Toric: OFF", 16);
+        toricText = sf::Text(gameFont, service.isToric() ? "Toric" : "!Toric", 16);
     } else {
-        toricText = sf::Text(font, service.isToric() ? "Toric: ON" : "Toric: OFF", 16);
+        toricText = sf::Text(font, service.isToric() ? "Toric" : "!Toric", 16);
     }
     toricText->setFillColor(sf::Color::White);
 
@@ -225,9 +225,9 @@ void SFMLUI::initializeGameUI() {
     mainMenuButton.setOutlineColor(sf::Color(120, 120, 120));
     mainMenuButton.setOutlineThickness(1.0f);
     if (gameFont.getInfo().family.size() > 0) {
-        mainMenuText = sf::Text(gameFont, "Main Menu", 16);
+        mainMenuText = sf::Text(gameFont, "Menu", 16);
     } else {
-        mainMenuText = sf::Text(font, "Main Menu", 16);
+        mainMenuText = sf::Text(font, "Menu", 16);
     }
     mainMenuText->setFillColor(sf::Color::White);
 
@@ -302,7 +302,7 @@ void SFMLUI::updateView() {
         mainMenuButton.setSize({mmw, mainMenuButton.getSize().y});
         mainMenuButton.setPosition({gridOffsetX + gridWidthPixels - mmw - 8.0f, (topBarHeight - mainMenuButton.getSize().y) / 2.0f});
         if (mainMenuText.has_value()) {
-            mainMenuText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, "Main Menu", static_cast<unsigned int>(std::max(12.0f, btnH * 0.4f)));
+            mainMenuText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, "Menu", static_cast<unsigned int>(std::max(12.0f, btnH * 0.4f)));
             mainMenuText->setFillColor(sf::Color::White);
             auto tb = mainMenuText->getLocalBounds();
             mainMenuText->setPosition({mainMenuButton.getPosition().x + mainMenuButton.getSize().x / 2.0f - tb.size.x / 2.0f,
@@ -326,7 +326,7 @@ void SFMLUI::updateView() {
         toricToggleButton.setSize({btnW * 0.9f, btnH});
         toricToggleButton.setPosition({gridOffsetX + gridWidthPixels - toricToggleButton.getSize().x - mmw - 18.0f, (topBarHeight - btnH) / 2.0f});
         if (toricText.has_value()) {
-            toricText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, service.isToric() ? "Toric: ON" : "Toric: OFF", static_cast<unsigned int>(std::max(12.0f, btnH * 0.45f)));
+            toricText = sf::Text(gameFont.getInfo().family.size() ? gameFont : font, service.isToric() ? "Toric" : "!Toric", static_cast<unsigned int>(std::max(12.0f, btnH * 0.45f)));
             toricText->setFillColor(sf::Color::White);
             auto tb = toricText->getLocalBounds();
             toricText->setPosition({toricToggleButton.getPosition().x + toricToggleButton.getSize().x / 2.0f - tb.size.x / 2.0f,
