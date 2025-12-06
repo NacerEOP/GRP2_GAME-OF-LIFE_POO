@@ -1,4 +1,4 @@
-# Game of Life (POO) — GRP2
+# Game of Life (POO) — GRP1
 
 Ce dépôt contient une implémentation orientée objet du jeu de la vie en C++17.
 
