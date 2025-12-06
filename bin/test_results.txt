@@ -25,7 +25,7 @@ ACTUAL:
 01110
 00000
 00000
-[FIN] clignotant (3 ms)
+[FIN] clignotant (4 ms)
 [DEBUT] bloc_stable
 Bloc stable (attendu vs obtenu):
 EXPECTED:
@@ -75,7 +75,7 @@ ACTUAL:
 101
 0A0
 100
-[FIN] entree_sortie_fichier (2 ms)
+[FIN] entree_sortie_fichier (24 ms)
 ===============================================================================
 All tests passed (10 assertions in 5 test cases)
 
